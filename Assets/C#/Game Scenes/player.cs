@@ -15,6 +15,9 @@ public class player : MonoBehaviour
     [Header("跳跃使用组件")]
     public float speedjump;
     public bool injump;
+    public bool isGliding;
+    public bool isFalling;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -23,12 +26,12 @@ public class player : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void Update()//技能等精细输入用
     {
         JUMP();
     }
 
-    private void FixedUpdate()
+    private void FixedUpdate()//运动用
     {
         move();
     }
@@ -37,7 +40,6 @@ public class player : MonoBehaviour
     {
         number = Input.GetAxis("Horizontal");
         playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);//移动代码number乘以speed速度是
-        //player.velocitx = new Vector2(number * speed, player.velocitx.x);
         File();
     }
 
@@ -53,11 +55,24 @@ public class player : MonoBehaviour
         }
     }
 
-    private void JUMP()
+    private void JUMP()//跳跃
     {
-        if (Input.GetButtonDown("Jump"))
+        isFalling = playerRb.velocity.y < 0;//y轴变化小于0时触发
+        if (Input.GetButtonDown("Jump"))//跳跃需要
         {
+            isGliding = false;
+            playerRb.gravityScale = 6;
             playerRb.velocity = new Vector2(playerRb.velocity.x, speedjump);
+        }
+        if (isFalling == true && Input.GetKey(KeyCode.Space) && !isGliding)//这个if都是滑翔虽然好像没要求二段跳的但是我还是做了兼容
+        {
+            isGliding = true;
+            playerRb.gravityScale = 0.5f;
+        }
+        else if(isFalling == false || !Input.GetKey(KeyCode.Space))
+        {
+            isGliding = false;
+            playerRb.gravityScale = 6;
         }
     }
 }

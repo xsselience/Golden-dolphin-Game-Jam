@@ -225,9 +225,9 @@ GameObject:
   - component: {fileID: 1311582898}
   - component: {fileID: 1311582897}
   - component: {fileID: 1311582899}
-  m_Layer: 0
-  m_Name: Square
-  m_TagString: Untagged
+  m_Layer: 7
+  m_Name: ground
+  m_TagString: ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -357,9 +357,9 @@ GameObject:
   - component: {fileID: 1443616812}
   - component: {fileID: 1443616811}
   - component: {fileID: 1443616810}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Circle
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -382,6 +382,9 @@ MonoBehaviour:
   number: 0
   speedjump: 22
   injump: 0
+  lastY: 0
+  isGliding: 0
+  isFalling: 0
 --- !u!50 &1443616811
 Rigidbody2D:
   serializedVersion: 4
