@@ -2329,7 +2329,7 @@ MonoBehaviour:
   patrolSpeed: 2
   waitAtWaypoint: 1
   chaseSpeed: 4
-  detectionRange: 5
+  detectionRange: 4
   attackRange: 1.5
   attackCooldown: 0.8
   attackDamage: 1
