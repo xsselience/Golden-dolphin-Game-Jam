@@ -31,12 +31,21 @@ public class player : MonoBehaviour
     public float cooldownTimer;//冲刺冷却时间
     public int dashDir;        // 冲刺锁定的方向
 
+    [Header("穿越平台使用组件")]
+    public float Stime;//用了限制下落时松开s会被弹开的
+
+    [Header("图层组件")]
+    private int playerLayer;
+    private int platformLayerIndex;
+
 
     // Start is called before the first frame update
     void Start()
     {
         playerRb = GetComponent<Rigidbody2D>();
         playertrans = GetComponent<Transform>();
+        playerLayer = LayerMask.NameToLayer("player");
+        platformLayerIndex = LayerMask.NameToLayer("platform");
     }
 
     // Update is called once per frame
@@ -44,6 +53,7 @@ public class player : MonoBehaviour
     {
         dash();
         JUMP();
+        IgnoreLayer();
     }
 
     private void FixedUpdate()//运动用
@@ -128,6 +138,15 @@ public class player : MonoBehaviour
         }
     }
 
+    public void IgnoreLayer()//穿越平台用代码
+    {
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            Physics2D.IgnoreLayerCollision(playerLayer, platformLayerIndex, true);
+            StartCoroutine(RestoreAfterTimer());//启用携程
+        }
+    }
+
     public void Attacking()//攻击用目前占位 计划等待动画一起做
     {
         if (Input.GetButtonDown("Fire1"))
@@ -147,5 +166,11 @@ public class player : MonoBehaviour
     public void Hacker()//黑入占位
     {
 
+    }
+
+    IEnumerator RestoreAfterTimer()//协程
+    {
+        yield return new WaitForSeconds(Stime);
+        Physics2D.IgnoreLayerCollision(playerLayer, platformLayerIndex, false);
     }
 }
