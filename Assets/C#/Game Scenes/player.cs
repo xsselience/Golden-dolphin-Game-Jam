@@ -76,7 +76,10 @@ public class player : MonoBehaviour
         }
         number = Input.GetAxis("Horizontal");
         playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);//移动代码number乘以speed速度是
-        File();
+        if (!attack)
+        {
+            File();
+        }
     }
 
     private void File()//镜像反转

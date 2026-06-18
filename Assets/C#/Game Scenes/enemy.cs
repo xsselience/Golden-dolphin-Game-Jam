@@ -17,7 +17,7 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
     // ── 攻击 ──
     [Header("攻击组件")]
     [SerializeField] private float attackRange = 1.5f;   // 近战攻击距离
-    [SerializeField] private float attackCooldown = 0.8f;// 攻击间隔（秒）
+    [SerializeField] private float attackCooldown = 1.5f;// 攻击间隔（秒）
     [SerializeField] private int attackDamage = 1;       // 每次攻击伤害
 
     // ── 引用 ──
@@ -42,6 +42,9 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
 
     void Update()
     {
+        // 冷却倒计时，不论什么状态都跑
+        if (attackTimer > 0)
+            attackTimer -= Time.deltaTime;
         // 始终检测玩家距离
         float distanceToPlayer = DetectPlayer();
 
@@ -150,7 +153,6 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
     void SwitchState(State newState)
     {
         currentState = newState;
-        attackTimer = 0f; // 切状态时重置攻击冷却
     }
 
     void FlipToward(Vector2 target)//转向
