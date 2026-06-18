@@ -38,6 +38,9 @@ public class player : MonoBehaviour
     private int playerLayer;
     private int platformLayerIndex;
 
+    [Header("动画使用组件")]
+    public Animator anim;
+
 
     // Start is called before the first frame update
     void Start()
@@ -46,14 +49,17 @@ public class player : MonoBehaviour
         playertrans = GetComponent<Transform>();
         playerLayer = LayerMask.NameToLayer("player");
         platformLayerIndex = LayerMask.NameToLayer("platform");
+        anim = GetComponent<Animator>();
     }
 
     // Update is called once per frame
     void Update()//技能等精细输入用
     {
+        Attacking();
         dash();
         JUMP();
         IgnoreLayer();
+        SwitchAnim();
     }
 
     private void FixedUpdate()//运动用
@@ -151,8 +157,13 @@ public class player : MonoBehaviour
     {
         if (Input.GetButtonDown("Fire1"))
         {
-
+            attack = true;
         }
+    }
+
+    public void AttackEnd()
+    {
+        attack = false;
     }
 
     public void Defense()//防御占位
@@ -166,6 +177,11 @@ public class player : MonoBehaviour
     public void Hacker()//黑入占位
     {
 
+    }
+
+    private void SwitchAnim()//动画判定
+    {
+        anim.SetBool("attacktrue", attack);
     }
 
     IEnumerator RestoreAfterTimer()//协程
