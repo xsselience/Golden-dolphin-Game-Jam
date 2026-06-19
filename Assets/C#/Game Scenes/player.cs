@@ -17,6 +17,9 @@ public class player : MonoBehaviour
     public bool injump;
     public bool isGliding;
     public bool isFalling;
+    public bool inground;
+    public Transform feet;
+    public LayerMask ground;
 
     [Header("攻击使用组件")]
     public bool attack;
@@ -63,6 +66,7 @@ public class player : MonoBehaviour
         JUMP();
         IgnoreLayer();
         SwitchAnim();
+        FixedupdateCheck();
     }
 
     private void FixedUpdate()//运动用
@@ -100,13 +104,13 @@ public class player : MonoBehaviour
     private void JUMP()//跳跃
     {
         isFalling = playerRb.velocity.y < 0;//y轴变化小于0时触发
-        if (Input.GetButtonDown("Jump"))//跳跃需要
+        if (Input.GetButtonDown("Jump") && inground)//跳跃需要
         {
             isGliding = false;
             playerRb.gravityScale = 6;
             playerRb.velocity = new Vector2(playerRb.velocity.x, speedjump);
         }
-        if (isFalling == true && Input.GetKey(KeyCode.Space) && !isGliding)//这个if都是滑翔虽然好像没要求二段跳的但是我还是做了兼容
+        if (isFalling == true && Input.GetKey(KeyCode.Space) && !isGliding && !inground)//这个if都是滑翔虽然好像没要求二段跳的但是我还是做了兼容
         {
             isGliding = true;
             playerRb.gravityScale = 0.5f;
@@ -116,6 +120,11 @@ public class player : MonoBehaviour
             isGliding = false;
             playerRb.gravityScale = 6;
         }
+    }
+
+    private void FixedupdateCheck()
+    {
+        inground = Physics2D.OverlapCircle(feet.position/*获取feet的点*/, .01f/*范围*/, ground/*图层*/);
     }
 
     public void dash()//用于实现冲刺实现后带入移动
@@ -167,7 +176,7 @@ public class player : MonoBehaviour
         }
     }
 
-    public void AttackEnd()
+    public void AttackEnd()//攻击结束
     {
         attack = false;
     }
