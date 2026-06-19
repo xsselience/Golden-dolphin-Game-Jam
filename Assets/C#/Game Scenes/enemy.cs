@@ -28,6 +28,8 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
     public Animator anim;
     public bool Attacking;
 
+    [Header("生命值使用组件")]
+    public int health = 10;
     private enum State { Patrol, Chase, Attack }//状态机
     private State currentState;//当前状态
 
@@ -204,5 +206,14 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
     private void SwitchAnim()//动画判定
     {
         anim.SetBool("EnemyAttacking", Attacking);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        if (health <= 0)
+        {
+            // 玩家死亡逻辑
+        }
     }
 }

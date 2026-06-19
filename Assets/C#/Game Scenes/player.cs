@@ -41,6 +41,9 @@ public class player : MonoBehaviour
     [Header("动画使用组件")]
     public Animator anim;
 
+    [Header("生命值使用组件")]
+    public int health = 10;
+
 
     // Start is called before the first frame update
     void Start()
@@ -185,6 +188,15 @@ public class player : MonoBehaviour
     private void SwitchAnim()//动画判定
     {
         anim.SetBool("attacktrue", attack);
+    }
+
+    public void TakeDamage(int damage)
+    {
+        health -= damage;
+        if (health <= 0)
+        {
+            // 玩家死亡逻辑
+        }
     }
 
     IEnumerator RestoreAfterTimer()//协程

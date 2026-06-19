@@ -17,10 +17,10 @@ TagManager:
   - player
   - ground
   - platform
-  - 
+  - enemy
   - 
   - playerWeapon
-  - 
+  - EnemyWeapon
   - 
   - 
   - 

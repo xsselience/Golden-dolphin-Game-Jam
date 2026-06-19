@@ -591,7 +591,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 861230155}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: EnemyList
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -893,7 +893,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 974594669}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1195,6 +1195,7 @@ GameObject:
   - component: {fileID: 1100013334}
   - component: {fileID: 1100013335}
   - component: {fileID: 1100013336}
+  - component: {fileID: 1100013337}
   m_Layer: 11
   m_Name: Square
   m_TagString: Untagged
@@ -1314,6 +1315,26 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &1100013337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1100013333}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 961a49b4566799f4581b0d77b05c9891, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageToPlayer: 0
+  damageToEnemy: 1
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!1 &1151756833
 GameObject:
   m_ObjectHideFlags: 0
@@ -1574,7 +1595,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1256707839}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Enemypoint1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2040,6 +2061,7 @@ MonoBehaviour:
   dashDir: 0
   Stime: 0.2
   anim: {fileID: 0}
+  health: 10
 --- !u!50 &1443616811
 Rigidbody2D:
   serializedVersion: 4
@@ -2335,7 +2357,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1681275146}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Enemypoint2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2371,7 +2393,7 @@ GameObject:
   - component: {fileID: 1756647109}
   - component: {fileID: 1756647108}
   - component: {fileID: 1756647113}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2405,6 +2427,7 @@ MonoBehaviour:
     m_Bits: 64
   anim: {fileID: 0}
   Attacking: 0
+  health: 10
 --- !u!50 &1756647109
 Rigidbody2D:
   serializedVersion: 4
@@ -2627,7 +2650,8 @@ GameObject:
   - component: {fileID: 1995725741}
   - component: {fileID: 1995725742}
   - component: {fileID: 1995725743}
-  m_Layer: 0
+  - component: {fileID: 1995725744}
+  m_Layer: 12
   m_Name: Square
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2746,6 +2770,26 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &1995725744
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995725740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 961a49b4566799f4581b0d77b05c9891, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damageToPlayer: 1
+  damageToEnemy: 0
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &2018617494
 GameObject:
   m_ObjectHideFlags: 0
