@@ -29,6 +29,8 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
 
     [Header("生命值使用组件")]
     public int health = 10;
+
+    private Rigidbody2D rb;
     private enum State { Patrol, Chase, Attack }//状态机
     private State currentState;//当前状态
 
@@ -44,6 +46,7 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
         isWaiting = false;
         attackTimer = 0f;// 开局就可以攻击
         anim = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody2D>();
     }
 
     void Update()
@@ -111,8 +114,9 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
         Transform target = waypoints[currentWaypointIndex];
 
         // 向当前巡逻点移动
-        transform.position = Vector2.MoveTowards(
-            transform.position, target.position, patrolSpeed * Time.deltaTime);
+        Vector2 newPos = Vector2.MoveTowards(
+            rb.position, target.position, patrolSpeed * Time.deltaTime);
+        rb.MovePosition(newPos);
 
         // 翻转朝向
         FlipToward(target.position);
@@ -134,8 +138,10 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
         // 目标位置：玩家X + 敌人自己的Y（只在地面追击）
         Vector2 target = new Vector2(player.position.x, transform.position.y);
 
-        transform.position = Vector2.MoveTowards(
-            transform.position, target, chaseSpeed * Time.deltaTime);
+        Vector2 newPos = Vector2.MoveTowards(
+            rb.position, target, chaseSpeed * Time.deltaTime);
+        rb.MovePosition(newPos);
+
 
         FlipToward(player.position);
     }
