@@ -18,7 +18,6 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
     [Header("攻击组件")]
     [SerializeField] private float attackRange = 1.5f;   // 近战攻击距离
     [SerializeField] private float attackCooldown = 1.5f;// 攻击间隔（秒）
-    [SerializeField] private int attackDamage = 1;       // 每次攻击伤害
 
     // ── 引用 ──
     [Header("引用组件")]
@@ -151,9 +150,7 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
         if (attackTimer <= 0)
         {
             attackTimer = attackCooldown;
-            Attacking = true;
-            // 这里调玩家受伤逻辑：
-            // player.GetComponent<PlayerHealth>().TakeDamage(attackDamage);
+            Attacking = true;//玩家受伤逻辑交由攻击动画武器上的代码实现
         }
         else if(attackTimer > 0)
         {

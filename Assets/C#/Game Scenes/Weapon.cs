@@ -6,6 +6,7 @@ public class Weapon : MonoBehaviour
 {
     [Header("伤害数值")]
     [SerializeField] private int damageToPlayer;   // a：打到玩家时的伤害（敌人武器用）
+    [SerializeField] private int damageToPlayerMax;
     [SerializeField] private int damageToEnemy;    // b：打到敌人时的伤害（玩家武器用）
 
     [Header("图层")]
@@ -37,14 +38,20 @@ public class Weapon : MonoBehaviour
     {
         int hitLayer = 1 << hitObject.layer;
 
-        // ── 打到玩家 ──
+        // ── 打到玩家 ──//防御判定在这改（应该）
         if ((hitLayer & playerLayer) != 0)
         {
-            player playerHealth = hitObject.GetComponent<player>();
+            player playerHealth = hitObject.GetComponent<player>();//hitObject的意思是击中判定
             if (playerHealth != null)
             {
-                playerHealth.TakeDamage(damageToPlayer);   // 用 a 值
+                int finalDamage = TakeDamageWithParry(damageToPlayer, playerHealth);
+                playerHealth.TakeDamage(finalDamage);   // 用 a 值
             }
+            else
+            {
+                damageToPlayer = damageToPlayerMax;
+            }
+            
         }
 
         // ── 打到敌人 ──
@@ -56,5 +63,37 @@ public class Weapon : MonoBehaviour
                 enemyHealth.TakeDamage(damageToEnemy);     // 用 b 值
             }
         }
+    }
+
+    public int TakeDamageWithParry(int incomingDamage,player playerHealth)
+    {
+        if (!playerHealth.isBlocking)
+        {
+            // 没防御 → 全额受伤
+            Debug.Log("没防御！");
+            return incomingDamage;
+        }
+
+        if (playerHealth.perfectActive)
+        {
+            // 完美弹反！无伤 + 敌人停滞
+            StartCoroutine(HitStop());
+            Debug.Log("完美弹反！");
+            return 0;
+        }
+        else
+        {
+            // 普通格挡 → 减免伤害
+            int reduced = Mathf.RoundToInt(incomingDamage * (1f - playerHealth.blockDamageReduction));
+            Debug.Log($"格挡！伤害 {incomingDamage} → {reduced}");
+            return reduced;
+        }
+    }
+
+    IEnumerator HitStop()
+    {
+        Time.timeScale = 0f;                            // 暂停
+        yield return new WaitForSecondsRealtime(0.1f);  // 停 0.05 秒（用真实时间，不受暂停影响）
+        Time.timeScale = 1f;                            // 恢复
     }
 }

@@ -52,6 +52,7 @@ public class test : MonoBehaviour
         if (perfectActive)
         {
             // 完美弹反！无伤 + 敌人停滞
+            StartCoroutine(HitStop());
             StartCoroutine(StunEnemy(enemy));
             Debug.Log("完美弹反！");
             return 0;
@@ -84,5 +85,12 @@ public class test : MonoBehaviour
 
         // 恢复
         if (ai != null) ai.enabled = true;
+    }
+
+    IEnumerator HitStop()
+    {
+        Time.timeScale = 0f;                            // 暂停
+        yield return new WaitForSecondsRealtime(0.05f);  // 停 0.05 秒（用真实时间，不受暂停影响）
+        Time.timeScale = 1f;                            // 恢复
     }
 }

@@ -5,8 +5,8 @@ using UnityEngine;
 public class player : MonoBehaviour
 {
     [Header("物理组件")]
-    public Rigidbody2D playerRb;
-    public Transform playertrans;
+    private Rigidbody2D playerRb;
+    private Transform playertrans;
 
     [Header("移动使用组件")]
     public float speed;
@@ -14,10 +14,10 @@ public class player : MonoBehaviour
 
     [Header("跳跃使用组件")]
     public float speedjump;
-    public bool injump;
-    public bool isGliding;
-    public bool isFalling;
-    public bool inground;
+    private bool injump;
+    private bool isGliding;
+    private bool isFalling;
+    private bool inground;
     public Transform feet;
     public LayerMask ground;
 
@@ -29,10 +29,10 @@ public class player : MonoBehaviour
     public float dashTime = 0.3f;
     public float dashCooldown = 1f;
 
-    public bool isDashing;
-    public float dashTimer;    //冲刺持续多久
-    public float cooldownTimer;//冲刺冷却时间
-    public int dashDir;        // 冲刺锁定的方向
+    private bool isDashing;
+    private float dashTimer;    //冲刺持续多久
+    private float cooldownTimer;//冲刺冷却时间
+    private int dashDir;        // 冲刺锁定的方向
 
     [Header("穿越平台使用组件")]
     public float Stime;//用了限制下落时松开s会被弹开的
@@ -42,10 +42,21 @@ public class player : MonoBehaviour
     private int platformLayerIndex;
 
     [Header("动画使用组件")]
-    public Animator anim;
+    private Animator anim;
 
     [Header("生命值使用组件")]
     public int health = 10;
+
+    [Header("完美弹反窗口")]
+    public float perfectWindow = 0.2f;   // 右键按下后多久是完美弹反
+
+    [Header("普通格挡")]
+    public float blockDamageReduction = 0.5f;  // 格挡减免比例 (0.5=减半)
+
+    [Header("格挡判定")]
+    public SpriteRenderer sr;
+    public bool isBlocking;         // 右键按住
+    public bool perfectActive;      // 还在完美窗口内
 
 
     // Start is called before the first frame update
@@ -66,6 +77,7 @@ public class player : MonoBehaviour
         JUMP();
         IgnoreLayer();
         SwitchAnim();
+        Defense();
         FixedupdateCheck();
     }
 
@@ -168,7 +180,7 @@ public class player : MonoBehaviour
         }
     }
 
-    public void Attacking()//攻击用目前占位 计划等待动画一起做
+    public void Attacking()//攻击用目前占位但是已做等待动画完善
     {
         if (Input.GetButtonDown("Fire1"))
         {
@@ -183,9 +195,21 @@ public class player : MonoBehaviour
 
     public void Defense()//防御占位
     {
-        if (Input.GetKey(KeyCode.Mouse1))
+        // 按下右键 → 完美弹反开始
+        if (Input.GetMouseButtonDown(1))
         {
-            //效果为收到伤害减少但是还没做敌人等一手敌人的变量
+            isBlocking = true;
+            perfectActive = true;
+            StartCoroutine(PerfectWindowTimer());
+            sr.color = Color.red;
+        }
+
+        // 松开右键 → 取消
+        if (Input.GetMouseButtonUp(1))
+        {
+            isBlocking = false;
+            perfectActive = false;
+            sr.color = Color.white;
         }
     }
 
@@ -208,9 +232,15 @@ public class player : MonoBehaviour
         }
     }
 
-    IEnumerator RestoreAfterTimer()//协程
+    IEnumerator RestoreAfterTimer()//穿越平台用协程
     {
         yield return new WaitForSeconds(Stime);
         Physics2D.IgnoreLayerCollision(playerLayer, platformLayerIndex, false);
+    }
+
+    IEnumerator PerfectWindowTimer()//防御用协程1
+    {
+        yield return new WaitForSeconds(perfectWindow);
+        perfectActive = false;  // 完美窗口关闭，进入普通格挡
     }
 }
