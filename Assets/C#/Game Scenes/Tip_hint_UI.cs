@@ -7,7 +7,7 @@ public class TipHintUI : MonoBehaviour
 {
     // 全局单例，所有物体都能调用它改文字
     public static TipHintUI Instance;
-    [Header("把屏幕上的提示文字拖到这里")]
+    [Header("这里是屏幕上的提示文字")]
     public Text hintText;
 
     void Awake()
