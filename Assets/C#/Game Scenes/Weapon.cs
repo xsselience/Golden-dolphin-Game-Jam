@@ -7,21 +7,19 @@ public class Weapon : MonoBehaviour
     [Header("伤害数值")]
     [SerializeField] private int damageToPlayer;   // a：打到玩家时的伤害（敌人武器用）
     [SerializeField] private int damageToPlayerMax;
-    [SerializeField] private int damageToEnemy;    // b：打到敌人时的伤害（玩家武器用）
 
     [Header("图层")]
     [SerializeField] private LayerMask playerLayer;         // Player 图层
-    [SerializeField] private LayerMask enemyLayer;          // Enemy 图层
 
     /// <summary>
     /// 碰撞检测（2D）
     /// 如果用的是 3D，把 OnTriggerEnter2D 改成 OnTriggerEnter，
     /// 把 Collider2D 改成 Collider。
     /// </summary>
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        HandleHit(other.gameObject);
-    }
+    //void OnTriggerEnter2D(Collider2D other)
+    //{
+    //    HandleHit(other.gameObject);
+    //}
 
     /// <summary>
     /// 物理碰撞检测（2D），如果你没用 Trigger 而是实体碰撞
@@ -45,23 +43,20 @@ public class Weapon : MonoBehaviour
             if (playerHealth != null)
             {
                 int finalDamage = TakeDamageWithParry(damageToPlayer, playerHealth);
-                playerHealth.TakeDamage(finalDamage);   // 用 a 值
+                if (finalDamage > 0)
+                {
+                    playerHealth.TakeDamage(finalDamage);
+                }
+                else
+                {
+                    playerHealth.ActivateInvincibility();   // 完美格挡 → 无敌
+                }
             }
             else
             {
                 damageToPlayer = damageToPlayerMax;
             }
             
-        }
-
-        // ── 打到敌人 ──
-        if ((hitLayer & enemyLayer) != 0)
-        {
-            enemy enemyHealth = hitObject.GetComponent<enemy>();
-            if (enemyHealth != null)
-            {
-                enemyHealth.TakeDamage(damageToEnemy);     // 用 b 值
-            }
         }
     }
 

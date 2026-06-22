@@ -45,7 +45,11 @@ public class player : MonoBehaviour
     private Animator anim;
 
     [Header("生命值使用组件")]
-    public int health = 10;
+    public int health = 100;
+
+    [Header("无敌")]
+    public float invincibilityDuration = 1f;
+    private bool isInvincible = false;
 
     [Header("完美弹反窗口")]
     public float perfectWindow = 0.2f;   // 右键按下后多久是完美弹反
@@ -225,11 +229,31 @@ public class player : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
+        if (isInvincible) return;  // 无敌中，不受伤害
+
         health -= damage;
+        StartCoroutine(InvincibilityRoutine());
+
         if (health <= 0)
         {
-            // 玩家死亡逻辑
+            // 死亡逻辑
         }
+    }
+
+    /// <summary>
+    /// 触发无敌（完美格挡后由武器/子弹调用）。
+    /// </summary>
+    public void ActivateInvincibility()
+    {
+        if (!isInvincible)
+            StartCoroutine(InvincibilityRoutine());
+    }
+
+    IEnumerator InvincibilityRoutine()//同为无敌触发
+    {
+        isInvincible = true;
+        yield return new WaitForSeconds(invincibilityDuration);
+        isInvincible = false;
     }
 
     IEnumerator RestoreAfterTimer()//穿越平台用协程
