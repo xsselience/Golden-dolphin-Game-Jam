@@ -84,27 +84,32 @@ public class shenshangweapen : MonoBehaviour
 
     IEnumerator Knockback()
     {
-        Debug.Log("击退触发！player=" + (player != null) + " force=" + knockbackForce);
         if (!player) yield break;
 
         Rigidbody2D pRb = player.GetComponent<Rigidbody2D>();
-
-        // 远离 Boss，仅水平方向
+        player pScript = player.GetComponent<player>();
         float facing = player.position.x > boss.position.x ? 1f : -1f;
-        Vector2 dir = new Vector2(facing, 0f);
+
+        if (pScript != null) pScript.isKnockedBack = true;
+
+        float hSpeed = knockbackForce;
+        float vSpeed = knockbackForce * 0.8f;
+        float gravity = 40f;
 
         float elapsed = 0f;
         while (elapsed < knockbackDuration)
         {
-            elapsed += Time.deltaTime;//不衰减
-            Vector2 move = dir * knockbackForce * Time.deltaTime;
+            elapsed += Time.deltaTime;
+            vSpeed -= gravity * Time.deltaTime;
 
             if (pRb != null)
-                pRb.MovePosition(pRb.position + move);
+                pRb.velocity = new Vector2(facing * hSpeed, vSpeed);
             else
-                player.Translate(move);
+                player.Translate(new Vector2(facing * hSpeed, vSpeed) * Time.deltaTime);
 
             yield return null;
         }
+
+        if (pScript != null) pScript.isKnockedBack = false;
     }
 }

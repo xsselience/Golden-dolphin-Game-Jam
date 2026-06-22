@@ -833,8 +833,12 @@ MonoBehaviour:
   Stime: 0.2
   health: 100
   invincibilityDuration: 1
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 35328
   perfectWindow: 0.2
   blockDamageReduction: 0.5
+  isKnockedBack: 0
   sr: {fileID: 1288910640}
   isBlocking: 0
   perfectActive: 0
@@ -1543,6 +1547,14 @@ PrefabInstance:
     - target: {fileID: 3743059402954170256, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
       propertyPath: m_Name
       value: shenshang
+      objectReference: {fileID: 0}
+    - target: {fileID: 7530995296194648062, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
+      propertyPath: m_Layer
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 8008543396707708604, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

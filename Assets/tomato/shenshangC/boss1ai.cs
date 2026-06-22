@@ -468,7 +468,7 @@ public class boss1ai : MonoBehaviour
         // 红线从玩家位置向上拉到子弹生成点
         if (redLinePrefab != null)
         {
-            Vector3 linePos = player.position + Vector3.up * 6f;  // 拔高单位
+            Vector3 linePos = player.position + Vector3.up * 9f;  // 拔高单位
             GameObject redLine = Instantiate(redLinePrefab, player.position, Quaternion.identity);
             RedLine line = redLine.GetComponent<RedLine>();
             if (line != null)
