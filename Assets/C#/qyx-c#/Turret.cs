@@ -43,8 +43,8 @@ public class AutoTurret : MonoBehaviour
         // 1. 每帧执行扇形视野检测
         CheckSightView();
 
-        // 2. 玩家在交互圈内、按下C键，执行黑入自爆
-        if (playerInInteractRange && Input.GetKeyDown(KeyCode.C))
+        // 2. 玩家在交互圈内、按下F键，执行自爆
+        if (playerInInteractRange && Input.GetKeyDown(KeyCode.F))
         {
             HackAndDestroy();
         }
