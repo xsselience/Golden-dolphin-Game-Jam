@@ -9,6 +9,9 @@ public class boss1ai : MonoBehaviour
     [SerializeField] private Transform player;        //player位置
     [SerializeField] private Animator animator;       //动画组件
     [SerializeField] private int bossHealth;          //boss血量
+    [SerializeField] private bool bossdie;            //死亡触发
+    private bool isDead = false;
+    private bool animSetDead = false;
 
     [Header("武器")]
     [SerializeField] private shenshangweapen bossWeapon;
@@ -93,8 +96,20 @@ public class boss1ai : MonoBehaviour
 
     public void Update()
     {
-        // 自动出招
         SwitchAnim();
+        if (isDead)
+        {
+            if (!animSetDead)
+            {
+                Debug.Log("animator=" + (animator != null) + " enabled=" + animator.enabled);
+                animator.enabled = true;
+                animator.SetTrigger("die");
+                animSetDead = true;
+                Debug.Log("=== SetTrigger die 已发送 ===");
+            }
+            return;   // 发完信号后退出
+        }
+        // 自动出招  
         toAttack();
         if (isLocking)
         {
@@ -282,8 +297,8 @@ public class boss1ai : MonoBehaviour
     {
         animator.SetBool("normalAttack", normalAttackBool);
         animator.SetBool("dash", DashBool);
-        animator.SetBool("SpawnRoutine", SpawnBool);
-        animator.SetBool("missile", missileBool); 
+        animator.SetBool("SpawnRoutine", SpawnBool); 
+        animator.SetBool("missile", missileBool);
     }
 
     // ==================== 状态一：三段式普通攻击 ====================
@@ -503,6 +518,43 @@ public class boss1ai : MonoBehaviour
         isActing = false;
         currentState = BossState.Idle;
         lastActionTime = Time.time;
+    }
+
+    public void TakeDamage(int damage)
+    {
+        if (isDead) return;
+        bossHealth -= damage;
+        Debug.Log("Boss 受伤 " + damage + "，剩余血量 " + bossHealth);
+
+        if (bossHealth <= 0)
+        {
+            Debug.Log("=== bossHealth <= 0，准备触发死亡 ===");
+            isDead = true;
+            bossdie = true;
+            Debug.Log("=== bossdie 已设为 " + bossdie + " ===");
+
+            // 强制中断所有状态
+            isActing = false;
+            normalAttackBool = false;
+            DashBool = false;
+            SpawnBool = false;
+            missileBool = false;
+            isLocking = false;
+            isDashing = false;
+            if (!animator.enabled) animator.enabled = true;
+
+            Debug.Log("Boss 死亡");
+        }
+    }
+
+    public void Colliderno()//碰撞判定归零
+    {
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+
+        Rigidbody2D rb2d = GetComponent<Rigidbody2D>();
+        if (rb2d != null) rb2d.simulated = false;
+        enabled = false;
     }
 
 

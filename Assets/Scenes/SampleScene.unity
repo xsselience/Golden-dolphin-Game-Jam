@@ -3170,7 +3170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 10
   number: 0
-  speedjump: 33
+  speedjump: 25
   feet: {fileID: 1095529059}
   ground:
     serializedVersion: 2
@@ -3182,8 +3182,12 @@ MonoBehaviour:
   Stime: 0.2
   health: 100
   invincibilityDuration: 1
+  enemyLayers:
+    serializedVersion: 2
+    m_Bits: 0
   perfectWindow: 0.2
   blockDamageReduction: 0.5
+  isKnockedBack: 0
   sr: {fileID: 1443616813}
   isBlocking: 0
   perfectActive: 0
