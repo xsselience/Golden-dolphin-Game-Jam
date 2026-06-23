@@ -14,15 +14,12 @@ public class Esc : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Openmenu();
+
     }
 
-    public void Openmenu()
+    public void Openmenu()//做个点击吧老黄划给ui了
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
             Menu.SetActive(true);
-        }
     }
 
     public void Closemenu()
