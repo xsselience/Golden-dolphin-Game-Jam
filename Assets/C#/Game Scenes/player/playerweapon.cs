@@ -50,6 +50,8 @@ public class playerweapon : MonoBehaviour
             {
                 boss.TakeDamage(damageToEnemy);
             }
+
+
         }
     }
 }
