@@ -50,12 +50,17 @@ public class player : MonoBehaviour
     [Header("无敌")]
     public float invincibilityDuration = 1f;
     private bool isInvincible = false;
+    [Header("无敌碰撞忽略")]
+    [SerializeField] private LayerMask enemyLayers;  // 把 Enemy 和 Boss 的图层都勾上
 
     [Header("完美弹反窗口")]
     public float perfectWindow = 0.2f;   // 右键按下后多久是完美弹反
 
     [Header("普通格挡")]
     public float blockDamageReduction = 0.5f;  // 格挡减免比例 (0.5=减半)
+
+    [Header("击退")]
+    public bool isKnockedBack = false;
 
     [Header("格挡判定")]
     public SpriteRenderer sr;
@@ -93,6 +98,8 @@ public class player : MonoBehaviour
 
     public void move()//移动
     {
+        if (isKnockedBack) return;
+
         if (isDashing)
         {
             return;
@@ -249,10 +256,26 @@ public class player : MonoBehaviour
             StartCoroutine(InvincibilityRoutine());
     }
 
-    IEnumerator InvincibilityRoutine()//同为无敌触发
+    IEnumerator InvincibilityRoutine()//无敌触发
     {
         isInvincible = true;
+
+        // 忽略所有敌方图层的碰撞
+        for (int i = 0; i < 32; i++)
+        {
+            if ((enemyLayers & (1 << i)) != 0)
+                Physics2D.IgnoreLayerCollision(playerLayer, i, true);
+        }
+
         yield return new WaitForSeconds(invincibilityDuration);
+
+        // 恢复碰撞
+        for (int i = 0; i < 32; i++)
+        {
+            if ((enemyLayers & (1 << i)) != 0)
+                Physics2D.IgnoreLayerCollision(playerLayer, i, false);
+        }
+
         isInvincible = false;
     }
 
