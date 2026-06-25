@@ -4,14 +4,14 @@ using System.Collections;
 public class ExtendBridge : MonoBehaviour
 {
     [Header("交互提示文字")]
-    public string tipText = "按C延伸桥梁";
-    [Header("桥基础行走碰撞体（不勾选Is Trigger）")]
+    public string tipText = "按F延伸桥梁";
+    [Header("桥基础行走碰撞体")]
     public BoxCollider2D bridgeCol;
     [Header("桥梁整体向前平移距离")]
     public float extendMoveDist = 3.5f;
     [Header("平移全过程耗时（秒）")]
     public float extendDuration = 1.2f;
-    [Header("延伸动画控制器（预留视觉动画）")]
+    [Header("延伸动画控制器(如果有动画才启用）")]
     public Animator bridgeAnim;
     public string animParam = "IsExtend";
 
@@ -35,7 +35,7 @@ public class ExtendBridge : MonoBehaviour
     void Update()
     {
         if (isFinished) return;
-        if (hintTrigger.isPlayerInRange && Input.GetKeyDown(KeyCode.C))
+        if (hintTrigger.isPlayerInRange && Input.GetKeyDown(KeyCode.F))
         {
             StartCoroutine(BridgeMoveCoroutine());
         }

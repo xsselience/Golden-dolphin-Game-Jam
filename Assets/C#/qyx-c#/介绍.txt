@@ -1,0 +1,21 @@
+交互物体说明
+1. ElectroGate.cs 电子闸门
+   - 交互按键：F
+   - 功能：按F平滑向上升起闸门，升起后关闭阻挡碰撞，单次永久交互
+   - 可调参数：上升距离、上升动画时长、开门动画控制器
+2. ExtendBridge.cs 延伸桥梁
+   - 交互按键：F
+   - 功能：整体向前平移桥体，同步拉长碰撞，单次永久交互
+   - 可调参数：平移距离、平移动画时长
+3. VendingMachine.cs 自动售货机
+   - 交互按键：F，支持重复交互，带冷却间隔公开参数
+   - 通用功能：播放动画、存档音乐、回血、屏幕遮罩颜色（均预留空函数）
+   - 特殊售货机逻辑：
+     - 第一次交互：弹出任务UI（ui预留）
+     - 第二次交互：全局静态变量 is_hack_locked = false，解锁C黑入扫描
+## 公共依赖
+全局提示系统：HintManager + InteractHintTrigger  交互提示信息
+所有物体挂载InteractHintTrigger，搭配Circle Trigger碰撞就能实现靠近提示
+- 交互触发碰撞：Circle Collider2D 勾选 Is Trigger
+- 实体行走/阻挡碰撞：Box Collider2D 不勾选 Is Trigger
+

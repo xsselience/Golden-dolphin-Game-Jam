@@ -4,7 +4,7 @@ using System.Collections;
 public class ElectroGate : MonoBehaviour
 {
     [Header("交互提示文字")]
-    public string tipText = "按C开启电子闸门";
+    public string tipText = "按F开启电子闸门";
     [Header("未交互时阻挡玩家的实体碰撞体")]
     public BoxCollider2D blockCollider;
     [Header("闸门向上移动距离")]
@@ -27,8 +27,8 @@ public class ElectroGate : MonoBehaviour
     void Update()
     {
         if (isFinished) return;
-        // 玩家在圈内按C触发升起
-        if (hintTrigger.isPlayerInRange && Input.GetKeyDown(KeyCode.C))
+        // 玩家在圈内按f触发升起
+        if (hintTrigger.isPlayerInRange && Input.GetKeyDown(KeyCode.F))
         {
             StartCoroutine(GateMoveUpCoroutine());
         }
@@ -42,9 +42,6 @@ public class ElectroGate : MonoBehaviour
         Vector2 targetPos = startPos + new Vector2(0, moveUpDistance);
         float timePassed = 0f;
 
-        // 同步播放动画（有Animator才执行）
-        if (gateAnim != null)
-            gateAnim.SetBool(animParam, true);
 
         // 平滑插值移动
         while (timePassed < moveDuration)
