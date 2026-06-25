@@ -23,7 +23,7 @@ public class playerweapon : MonoBehaviour
 
     void HandleHit(GameObject hitObject)
     {
-        Debug.Log("武器碰到了: " + hitObject.name + " 图层=" + hitObject.layer);
+        Debug.Log("武器碰到了: " + hitObject.name + " 图层=" + hitObject.layer + " 层级路径=" + GetHierarchyPath(hitObject.transform));
         int hitLayer = 1 << hitObject.layer;
 
         if ((hitLayer & enemyLayer) != 0)
@@ -50,8 +50,23 @@ public class playerweapon : MonoBehaviour
             {
                 boss.TakeDamage(damageToEnemy);
             }
-
-
+            boss2ai boss2 = hitObject.GetComponent<boss2ai>();
+            if (boss2 != null)
+            {
+                boss2.TakeDamage(damageToEnemy);
+                return;
+            }
         }
+    }
+
+    string GetHierarchyPath(Transform t)
+    {
+        string path = t.name;
+        while (t.parent != null)
+        {
+            t = t.parent;
+            path = t.name + "/" + path;
+        }
+        return path;
     }
 }

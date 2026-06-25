@@ -69,12 +69,25 @@ public class boss1ai : MonoBehaviour
     [SerializeField] private float approachSpeed;       // 范围外时朝玩家移动的速度
 
     [Header("激活范围")]
-    [SerializeField] private float activationRange = 12f;     // 玩家进这个范围 Boss 才激活
-    private bool isActive = false;                             // 是否已激活
+    [SerializeField] private Vector2 activationZoneSize = new Vector2(24f, 12f);   // 矩形大小
+    [SerializeField] private Vector2 activationZoneOffset = Vector2.zero;            // 中心偏移
+    [SerializeField] private LayerMask activationPlayerLayer;
+    private bool isActive = false;
+
+    [Header("黑入反制")]
+    [SerializeField] private float counterHackChance = 0.1f;     // 10% 概率
+    [SerializeField] private float cameraZoomIn = 3f;             // 放大后的 orthographicSize
+    [SerializeField] private float zoomHoldTime = 0.6f;           // 在 Boss 身上停多久
+    [SerializeField] private float hackBanDuration = 10f;         // 禁用黑入多久
+
+    private bool counterHackTriggered = false;
 
     private float lastActionTime = -99f;          // 上次出招时间
     private float lastSpawnTime = -99f;           // 上次召唤时间
     private float lastBulletTime = -99f;          // 上次天降子弹时间
+
+    private bool isStunned = false;//这俩为触发眩晕这个之后可能做眩晕动画触发
+    private float stunTimer;
 
     private Rigidbody2D rb;
 
@@ -97,6 +110,13 @@ public class boss1ai : MonoBehaviour
     public void Update()
     {
         SwitchAnim();
+        if (isStunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0) isStunned = false;
+            return;
+        }
+
         if (isDead)
         {
             if (!animSetDead)
@@ -120,6 +140,40 @@ public class boss1ai : MonoBehaviour
         {
             indash();
         }
+
+        if (player != null)
+        {
+            player p = player.GetComponent<player>();
+            if (p != null && p.hackingMode && !counterHackTriggered)
+            {
+                if (Random.value < counterHackChance)
+                {
+                    StartCoroutine(CounterHackRoutine(p));
+                }
+                counterHackTriggered = true;
+            }
+            if (p != null && !p.hackingMode)
+            {
+                counterHackTriggered = false;  // 退出黑入后重置，下次再进可以再触发
+            }
+        }
+    }
+
+    public void Stun(float duration)
+    {
+        Debug.Log("Boss 被眩晕 " + duration + " 秒！");
+        isStunned = true;
+        stunTimer = duration;
+
+        // 中断当前招式
+        isActing = false;
+        normalAttackBool = false;
+        DashBool = false;
+        SpawnBool = false;
+        missileBool = false;
+        isLocking = false;
+        isDashing = false;
+        if (!animator.enabled) animator.enabled = true;
     }
 
     public void toAttack()
@@ -145,14 +199,16 @@ public class boss1ai : MonoBehaviour
         // —— 未激活：检测玩家是否进入激活范围 ——
         if (!isActive)
         {
-            if (distanceToPlayer <= activationRange)
+            Vector2 center = (Vector2)transform.position + activationZoneOffset;
+            Collider2D hit = Physics2D.OverlapBox(center, activationZoneSize, 0f, activationPlayerLayer);
+            if (hit != null)
             {
                 isActive = true;
                 Debug.Log("Boss 已激活！");
             }
             else
             {
-                return; // 没激活，什么都不做
+                return;
             }
         }
 
@@ -557,12 +613,67 @@ public class boss1ai : MonoBehaviour
         enabled = false;
     }
 
+    IEnumerator CounterHackRoutine(player p)//反黑入协程
+    {
+        Camera cam = Camera.main;
+        if (cam == null) yield break;
+
+        Vector3 camStartPos = cam.transform.position;
+        float startSize = cam.orthographicSize;
+        Vector3 bossPos = new Vector3(transform.position.x, transform.position.y, camStartPos.z);
+
+        // —— 第一步：镜头移向 Boss 并缩小视野（放大效果）——
+        float elapsed = 0f;
+        float moveDuration = 0.8f;
+
+        while (elapsed < moveDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / moveDuration;
+
+            cam.transform.position = Vector3.Lerp(camStartPos, bossPos, t);
+            cam.orthographicSize = Mathf.Lerp(startSize, cameraZoomIn, t);
+
+            yield return null;
+        }
+
+        cam.transform.position = bossPos;
+        cam.orthographicSize = cameraZoomIn;
+
+        // —— 第二步：在 Boss 身上停一下 ——
+        yield return new WaitForSecondsRealtime(zoomHoldTime);
+
+        // —— 第三步：迅速回归玩家 ——
+        Vector3 playerPos = new Vector3(p.transform.position.x, p.transform.position.y, camStartPos.z);
+        elapsed = 0f;
+        float returnDuration = 0.4f;
+
+        while (elapsed < returnDuration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = elapsed / returnDuration;
+
+            cam.transform.position = Vector3.Lerp(bossPos, playerPos, t);
+            cam.orthographicSize = Mathf.Lerp(cameraZoomIn, startSize, t);
+
+            yield return null;
+        }
+
+        cam.transform.position = playerPos;
+        cam.orthographicSize = startSize;
+
+        // —— 第四步：强制退出黑入，10 秒禁用 ——
+        if (p.hackingMode)
+            p.ForceExitHackMode(hackBanDuration);
+    }
+
 
     void OnDrawGizmosSelected()
     {
-        // 激活范围 — 黄色圈（最大）
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, activationRange);
+        // 激活范围 — 绿色/黄色矩形
+        Vector2 center = (Vector2)transform.position + activationZoneOffset;
+        Gizmos.color = isActive ? Color.yellow : Color.green;
+        Gizmos.DrawWireCube(center, activationZoneSize);
 
         // 近战范围 — 红色圈
         Gizmos.color = Color.red;

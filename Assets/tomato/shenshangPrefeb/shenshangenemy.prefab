@@ -145,13 +145,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageToPlayer: 10
   damageToPlayerMax: 0
-  damageToEnemy: 0
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
-  enemyLayer:
-    serializedVersion: 2
-    m_Bits: 0
 --- !u!1 &4483564868155887090
 GameObject:
   m_ObjectHideFlags: 0
@@ -229,7 +225,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
   m_Color: {r: 0, g: 0.78299093, b: 1, a: 1}
   m_FlipX: 0
@@ -362,6 +358,9 @@ MonoBehaviour:
   anim: {fileID: 0}
   Attacking: 0
   health: 10
+  isHacked: 0
+  hackSpeed: 8
+  hackDamage: 25
 --- !u!1 &5577339876854388062
 GameObject:
   m_ObjectHideFlags: 0
