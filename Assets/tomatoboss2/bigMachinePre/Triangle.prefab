@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3811769184437950901}
   - component: {fileID: 7717482351984679188}
   - component: {fileID: 7259145297082904650}
-  - component: {fileID: 7095864485433218860}
+  - component: {fileID: 2358946226426787689}
   m_Layer: 0
   m_Name: Triangle
   m_TagString: Untagged
@@ -74,7 +74,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 2
+  m_SortingOrder: 4
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -134,7 +134,7 @@ PolygonCollider2D:
       - {x: -0.5, y: -0.28866667}
       - {x: 0.5, y: -0.28866667}
   m_UseDelaunayMesh: 0
---- !u!114 &7095864485433218860
+--- !u!114 &2358946226426787689
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -143,12 +143,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 4381831841964168926}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e3e2beaf34d425f4a8f7a6854c34b71d, type: 3}
+  m_Script: {fileID: 11500000, guid: 694044c45ae298d41997946a4737e030, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fallSpeed: 30
-  damage: 20
-  targetY: -10
+  fallSpeed: 22
+  damage: 25
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -156,5 +155,5 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   isHacked: 0
-  hackSpeed: 30
-  hackDamage: 20
+  hackSpeed: 15
+  hackDamage: 30

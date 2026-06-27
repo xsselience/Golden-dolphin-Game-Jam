@@ -14,7 +14,7 @@ public class RedLine : MonoBehaviour
     /// <summary>设置红线底部 Y 坐标，红线从自身位置拉到目标 Y。</summary>
     public void SetTarget(float targetY)
     {
-        float height = transform.position.y - targetY;
+        float height = Mathf.Abs(transform.position.y - targetY);
         // 拉伸 Y 轴缩放
         transform.localScale = new Vector3(transform.localScale.x, height, 1);
     }

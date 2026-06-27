@@ -30,12 +30,22 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
     [Header("生命值使用组件")]
     public int health = 10;
 
+    [Header("黑入自爆")]
+    public bool isHacked = false;
+    [SerializeField] private float hackSpeed = 8f;
+    [SerializeField] private int hackDamage = 25;
+    private Transform bossTarget;
+
     private Rigidbody2D rb;
+    private SpriteRenderer sr;
+    private player playerScript;
     private enum State { Patrol, Chase, Attack }//状态机
     private State currentState;//当前状态
+    private Vector2 moveTarget;
+    private bool hasMoveTarget = false;
 
     private bool hasLanded = false;  // 落地标记
-    private Transform player;//缓存玩家的Transform
+    private Transform Player;//缓存玩家的Transform
     private int currentWaypointIndex;// 当前巡逻点的索引
     private float waitTimer;// 巡逻等待计时器
     private float attackTimer;// 攻击冷却计时器
@@ -48,6 +58,8 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         attackTimer = 0f;
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
+        playerScript = FindObjectOfType<player>();
 
         // 生成后先下落，不等不跑 AI
         StartCoroutine(FallToGround());
@@ -55,13 +67,18 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         if (waypoints == null || waypoints.Length == 0)
         {
             DetectPlayer();
-            if (player != null)
+            if (Player != null)
                 currentState = State.Chase;
         }
     }
 
     void Update()
     {
+        if (isHacked)
+        {
+            HackRush();
+            return;
+        }
         if (!hasLanded) return;  // 没落地，什么都不做
         SwitchAnim();
         // 冷却倒计时，不论什么状态都跑
@@ -75,13 +92,13 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         {
             case State.Patrol:
                 Patrol();
-                if (distanceToPlayer <= detectionRange && player != null)// 玩家进入检测范围 → 切换追击
+                if (distanceToPlayer <= detectionRange && Player != null)// 玩家进入检测范围 → 切换追击
                     SwitchState(State.Chase);
                 break;
 
             case State.Chase:
                 Chase();
-                if (distanceToPlayer > detectionRange || player == null)// 玩家跑出检测范围或丢失玩家 → 切回巡逻
+                if (distanceToPlayer > detectionRange || Player == null)// 玩家跑出检测范围或丢失玩家 → 切回巡逻
                     SwitchState(State.Patrol);
                 else if (distanceToPlayer <= attackRange)// 玩家进入攻击范围 → 切换攻击
                     SwitchState(State.Attack);
@@ -89,9 +106,18 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
 
             case State.Attack:
                 Attack();
-                if (distanceToPlayer > attackRange || player == null)// 玩家跑出攻击范围或丢失玩家 → 切回追击
+                if (distanceToPlayer > attackRange || Player == null)// 玩家跑出攻击范围或丢失玩家 → 切回追击
                     SwitchState(State.Chase);
                 break;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        if (hasMoveTarget)
+        {
+            rb.MovePosition(moveTarget);
+            hasMoveTarget = false;
         }
     }
 
@@ -102,10 +128,10 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         Collider2D hit = Physics2D.OverlapCircle(transform.position, detectionRange, playerLayer);
         if (hit != null)
         {
-            player = hit.transform;// 缓存玩家
-            return Vector2.Distance(transform.position, player.position);
+            Player = hit.transform;// 缓存玩家
+            return Vector2.Distance(transform.position, Player.position);
         }
-        player = null;// 没有玩家就清空
+        Player = null;// 没有玩家就清空
         return Mathf.Infinity;// 返回无限远，保证不会触发任何条件
     }
 
@@ -116,7 +142,7 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         if (waypoints == null || waypoints.Length == 0)
         {
             DetectPlayer();
-            if (player != null)
+            if (Player != null)
                 SwitchState(State.Chase);
             return;
         }
@@ -134,9 +160,11 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         Transform target = waypoints[currentWaypointIndex];
 
         // 向当前巡逻点移动
-        Vector2 newPos = Vector2.MoveTowards(
-            rb.position, target.position, patrolSpeed * Time.deltaTime);
-        rb.MovePosition(newPos);
+        Vector2 newPos = Vector2.MoveTowards(rb.position, target.position, patrolSpeed * Time.deltaTime);
+        moveTarget = newPos;
+        hasMoveTarget = true;
+
+        FlipToward(target.position);
 
         // 翻转朝向
         FlipToward(target.position);
@@ -153,23 +181,25 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
     // ── 追击 ──
     void Chase()
     {
-        if (player == null) return;
+        if (Player == null) return;
 
         // 目标位置：玩家X + 敌人自己的Y（只在地面追击）
-        Vector2 target = new Vector2(player.position.x, transform.position.y);
+        Vector2 target = new Vector2(Player.position.x, transform.position.y);
 
-        Vector2 newPos = Vector2.MoveTowards(
-            rb.position, target, chaseSpeed * Time.deltaTime);
-        rb.MovePosition(newPos);
+        Vector2 newPos = Vector2.MoveTowards(rb.position, target, chaseSpeed * Time.deltaTime);
+        moveTarget = newPos;
+        hasMoveTarget = true;
+
+        FlipToward(Player.position);
 
 
-        FlipToward(player.position);
+        FlipToward(Player.position);
     }
 
     // ── 攻击 ──
     void Attack()
     {
-        if (player == null) return;
+        if (Player == null) return;
 
         attackTimer -= Time.deltaTime;// 冷却倒计时
 
@@ -250,9 +280,61 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         if (waypoints == null || waypoints.Length == 0)
         {
             DetectPlayer();
-            if (player != null)
+            if (Player != null)
                 currentState = State.Chase;
         }
+    }
+
+    // ==================== 黑入自爆 ====================
+
+    public void GetHacked(Transform boss)
+    {
+        if (isHacked) return;
+        isHacked = true;
+        bossTarget = boss;
+        rb.bodyType = RigidbodyType2D.Kinematic;
+
+        // 黑入计数 +1
+        if (playerScript != null)
+            playerScript.IncrementHackCount();
+    }
+
+    void HackRush()
+    {
+        if (bossTarget == null) return;
+
+        Vector2 target = new Vector2(bossTarget.position.x, transform.position.y);
+        Vector2 newPos = Vector2.MoveTowards(rb.position, target, hackSpeed * Time.deltaTime);
+        moveTarget = newPos;
+        hasMoveTarget = true;
+
+        FlipToward(bossTarget.position);
+        FlipToward(bossTarget.position);
+
+        if (Vector2.Distance(transform.position, bossTarget.position) < 1.5f)
+        {
+            bossTarget.GetComponent<boss1ai>()?.TakeDamage(hackDamage);
+            Destroy(gameObject);
+        }
+    }
+
+    /// <summary>
+    /// 黑入模式下高亮/取消高亮。
+    /// </summary>
+    public void SetHighlight(bool on)
+    {
+        if (sr == null) sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+            sr.color = on ? Color.cyan : Color.white;
+    }
+
+    /// <summary>
+    /// 玩家点击小兵触发黑入。
+    /// </summary>
+    void OnMouseDown()
+    {
+        if (playerScript != null)
+            playerScript.HackEnemy(this);
     }
 
     private void SwitchAnim()//动画判定
@@ -265,7 +347,7 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         health -= damage;
         if (health <= 0)
         {
-            // 玩家死亡逻辑
+            Destroy(gameObject);
         }
     }
 }

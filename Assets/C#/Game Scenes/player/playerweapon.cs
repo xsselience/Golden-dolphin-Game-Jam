@@ -12,18 +12,15 @@ public class playerweapon : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        Debug.Log("武器 Trigger 碰到: " + other.name);
         HandleHit(other.gameObject);
     }
     void OnCollisionEnter2D(Collision2D collision)
     {
-        Debug.Log("武器 Collision 碰到: " + collision.gameObject.name);
         HandleHit(collision.gameObject);
     }
 
     void HandleHit(GameObject hitObject)
     {
-        Debug.Log("武器碰到了: " + hitObject.name + " 图层=" + hitObject.layer);
         int hitLayer = 1 << hitObject.layer;
 
         if ((hitLayer & enemyLayer) != 0)
@@ -50,8 +47,23 @@ public class playerweapon : MonoBehaviour
             {
                 boss.TakeDamage(damageToEnemy);
             }
-
-
+            boss2ai boss2 = hitObject.GetComponent<boss2ai>();
+            if (boss2 != null)
+            {
+                boss2.TakeDamage(damageToEnemy);
+                return;
+            }
         }
+    }
+
+    string GetHierarchyPath(Transform t)
+    {
+        string path = t.name;
+        while (t.parent != null)
+        {
+            t = t.parent;
+            path = t.name + "/" + path;
+        }
+        return path;
     }
 }
