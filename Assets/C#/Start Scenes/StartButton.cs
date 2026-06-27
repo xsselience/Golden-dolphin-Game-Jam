@@ -5,10 +5,23 @@ using UnityEngine.SceneManagement;
 
 public class StartButton : MonoBehaviour
 {
-    public GameObject Settings;
+    private Animator anim;
 
-    public void StartGame()
+    void Start()
+    {
+        anim = GetComponent<Animator>();
+    }
+
+    // ─── 按钮调用这个 ───
+    public void OnStartGameButton()
+    {
+        anim.SetBool("gogame", true);
+    }
+
+    // ─── 动画事件帧调用这个 ───
+    public void LoadNextScene()
     {
         SceneManager.LoadScene(1);
+        // 或者按索引：SceneManager.LoadScene(1);
     }
 }

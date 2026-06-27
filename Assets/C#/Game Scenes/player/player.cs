@@ -104,6 +104,14 @@ public class player : MonoBehaviour
 
     [HideInInspector] public bool controlsDisabled = false;
 
+    public void SetHackCount(int count) => hackCount = count;
+    public int GetHackCount() => hackCount;
+    public void SetCyberPower(int power) { currentCyberPower = power; UpdateCyberUI(); }
+    public int GetCyberPower() => currentCyberPower;
+
+    public void SetCyberEnabled(bool on) => cyberSystemEnabled = on;
+    public bool IsCyberEnabled() => cyberSystemEnabled;
+
 
     // Start is called before the first frame update
     void Start()
@@ -462,8 +470,14 @@ public class player : MonoBehaviour
 
         if (health <= 0)
         {
-            // 死亡逻辑
+            controlsDisabled = true;
+            anim.SetBool("die", true);
         }
+    }
+
+    public void OnDeathUICallback()
+    {
+        GameManager.Instance?.OnPlayerDied();
     }
 
     /// <summary>

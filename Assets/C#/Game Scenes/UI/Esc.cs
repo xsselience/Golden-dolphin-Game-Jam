@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Esc : MonoBehaviour
 {
@@ -8,7 +9,7 @@ public class Esc : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Menu.SetActive(false);
+
     }
 
     // Update is called once per frame
@@ -25,5 +26,10 @@ public class Esc : MonoBehaviour
     public void Closemenu()
     {
         Menu.SetActive(false);
+    }
+
+    public void backmuen()
+    {
+        SceneManager.LoadScene(0);
     }
 }
