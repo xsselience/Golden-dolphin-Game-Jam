@@ -191,6 +191,7 @@ MonoBehaviour:
   player: {fileID: 0}
   animator: {fileID: 0}
   bossHealth: 100
+  bossdie: 0
   bossWeapon: {fileID: 7479765919549698819}
   normalAttackBool: 0
   DashBool: 0
@@ -209,7 +210,7 @@ MonoBehaviour:
   isLocking: 0
   redLinePrefab: {fileID: 3661307692053779764, guid: f94943d6ce2829c44a9b108b0d295293, type: 3}
   fallingBulletPrefab: {fileID: 4381831841964168926, guid: 145426f7d2102fa429fa73b87c359a66, type: 3}
-  bulletFallHeight: 10
+  bulletFallHeight: 40
   bulletDamage: 20
   autoAttack: 1
   actionCooldown: 2
@@ -221,7 +222,15 @@ MonoBehaviour:
   weightBullet: 10
   meleeRange: 5
   approachSpeed: 5
-  activationRange: 18
+  activationZoneSize: {x: 28, y: 22}
+  activationZoneOffset: {x: 0, y: 0}
+  activationPlayerLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  counterHackChance: 0.1
+  cameraZoomIn: 3
+  zoomHoldTime: 0.6
+  hackBanDuration: 10
 --- !u!114 &7736701689718592704
 MonoBehaviour:
   m_ObjectHideFlags: 0
