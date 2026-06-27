@@ -329,12 +329,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 153732513}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 10}
-  m_LocalScale: {x: 18, y: 10, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.07, y: -0.6004, z: 0}
+  m_LocalScale: {x: 25.387154, y: 15.64353, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 549967540}
+  m_Father: {fileID: 1288910641}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &224716034
 GameObject:
@@ -558,7 +558,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 6.921458
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -586,8 +586,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 153732515}
+  m_Children: []
   m_Father: {fileID: 1370503756}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &637912234
@@ -1100,10 +1099,19 @@ MonoBehaviour:
   hackMaxDuration: 8
   hackingMode: 0
   blockDamageReduction: 0.5
+  maxCyberPower: 100
+  portalActivationCost: 15
+  teleportCooldown: 10
+  cyberPowerText: {fileID: 0}
+  coverActivationCost: 3
+  boss2MissileHackCost: 5
   isKnockedBack: 0
   sr: {fileID: 1288910640}
   isBlocking: 0
   perfectActive: 0
+  finalBlowKnockbackForce: 30
+  finalBlowKnockbackDuration: 1
+  controlsDisabled: 0
 --- !u!50 &1288910638
 Rigidbody2D:
   serializedVersion: 4
@@ -1227,12 +1235,13 @@ Transform:
   m_GameObject: {fileID: 1288910635}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.38, y: 0, z: 0}
+  m_LocalPosition: {x: -0.22, y: 0.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1684192723}
   - {fileID: 473165968}
+  - {fileID: 153732515}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1370503754
@@ -1997,8 +2006,20 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1508865266114090687, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
+      propertyPath: weightDash
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 1508865266114090687, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
+      propertyPath: weightSpawn
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1508865266114090687, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
       propertyPath: counterHackChance
       value: 0.05
+      objectReference: {fileID: 0}
+    - target: {fileID: 1508865266114090687, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
+      propertyPath: weightNormalAttack
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 1508865266114090687, guid: 5c090e6a452a245499e9a530d757894a, type: 3}
       propertyPath: activationZoneSize.x

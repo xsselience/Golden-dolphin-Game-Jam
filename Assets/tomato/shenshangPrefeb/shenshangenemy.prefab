@@ -227,7 +227,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
-  m_Color: {r: 0, g: 0.78299093, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -346,10 +346,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   waypoints: []
-  patrolSpeed: 2
+  patrolSpeed: 12
   waitAtWaypoint: 1
-  chaseSpeed: 14
-  detectionRange: 9
+  chaseSpeed: 18
+  detectionRange: 12
   attackRange: 1.5
   attackCooldown: 1.5
   playerLayer:
@@ -359,7 +359,7 @@ MonoBehaviour:
   Attacking: 0
   health: 10
   isHacked: 0
-  hackSpeed: 8
+  hackSpeed: 30
   hackDamage: 25
 --- !u!1 &5577339876854388062
 GameObject:

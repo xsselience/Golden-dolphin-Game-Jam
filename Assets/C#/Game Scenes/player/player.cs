@@ -98,6 +98,12 @@ public class player : MonoBehaviour
     public bool isBlocking;         // 右键按住
     public bool perfectActive;      // 还在完美窗口内
 
+    [Header("最后一击")]
+    [SerializeField] private float finalBlowKnockbackForce = 30f;
+    [SerializeField] private float finalBlowKnockbackDuration = 1f;
+
+    [HideInInspector] public bool controlsDisabled = false;
+
 
     // Start is called before the first frame update
     void Start()
@@ -114,6 +120,7 @@ public class player : MonoBehaviour
     // Update is called once per frame
     void Update()//技能等精细输入用
     {
+        if (controlsDisabled) return;
         if (teleportCooldownTimer > 0)
             teleportCooldownTimer -= Time.unscaledDeltaTime;
         Hacker();
@@ -128,6 +135,7 @@ public class player : MonoBehaviour
 
     private void FixedUpdate()//运动用
     {
+        if (controlsDisabled) return;
         cooldownTimer -= Time.deltaTime;
         move();
     }
@@ -399,6 +407,7 @@ public class player : MonoBehaviour
     {
         hackingMode = false;
         hackCooldownTimer = cooldown;
+        attackGuardTimer = 0.1f;   // ← 加这行，挡住同一帧的点击
         Time.timeScale = 1f;
         Time.fixedDeltaTime = 0.02f;   // ← 恢复默认
         if (hackOverlay != null) hackOverlay.SetActive(false);
@@ -568,6 +577,48 @@ public class player : MonoBehaviour
 
         ExitHackMode(5f);
     }
+
+    /// <summary>boss2 死亡演出后调用</summary>
+    public void DeliverFinalBlow(Transform boss, int ending)
+    {
+        isKnockedBack = true;
+
+        // 大力击飞玩家（远离 Boss）
+        float facing = transform.position.x > boss.position.x ? 1f : -1f;
+        Vector2 dir = new Vector2(facing, 0.8f);
+
+        Rigidbody2D prb = playerRb;
+        prb.velocity = dir * finalBlowKnockbackForce;
+
+        StartCoroutine(FinalBlowRoutine(boss, ending));
+    }
+
+    IEnumerator FinalBlowRoutine(Transform boss, int ending)
+    {
+        yield return new WaitForSeconds(finalBlowKnockbackDuration);
+        isKnockedBack = false;
+
+        // Boss 死亡
+        boss2ai b2 = boss.GetComponent<boss2ai>();
+        if (b2 != null)
+            b2.FinalDeath();
+
+        // 播 Timeline 结局
+        PlayEndingTimeline(ending);
+    }
+
+    void PlayEndingTimeline(int ending)
+    {
+        // 去 Hierarchy 里找对应的 Timeline 物体
+        string timelineName = ending == 1 ? "Ending1_Timeline" : "Ending2_Timeline";
+        Debug.Log("播放结局 " + ending + " → " + timelineName);
+
+        // TODO：用 Timeline 播放
+        // GameObject tlObj = GameObject.Find(timelineName);
+        // if (tlObj != null) tlObj.GetComponent<PlayableDirector>().Play();
+    }
+
+    public int GetCurrentCyberPower() => currentCyberPower;
 
     IEnumerator InvincibilityRoutine()//无敌触发
     {

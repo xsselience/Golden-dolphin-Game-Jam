@@ -94,6 +94,10 @@ public class FallingBullet : MonoBehaviour
     {
         isHacked = true;
         bossTarget = boss;
+
+        // 黑入计数 +1
+        player p = FindObjectOfType<player>();
+        if (p != null) p.IncrementHackCount();
     }
 
     void HackRush()

@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxRange: 50
-  sweepSpeed: 8
+  rotateSpeed: 135
   laserDamage: 15
   lineWidth: 0.15
   lineColor: {r: 1, g: 0.2, b: 0.2, a: 0.8}

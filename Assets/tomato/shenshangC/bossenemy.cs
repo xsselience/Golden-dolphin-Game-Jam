@@ -41,6 +41,8 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
     private player playerScript;
     private enum State { Patrol, Chase, Attack }//状态机
     private State currentState;//当前状态
+    private Vector2 moveTarget;
+    private bool hasMoveTarget = false;
 
     private bool hasLanded = false;  // 落地标记
     private Transform Player;//缓存玩家的Transform
@@ -110,6 +112,15 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         }
     }
 
+    void FixedUpdate()
+    {
+        if (hasMoveTarget)
+        {
+            rb.MovePosition(moveTarget);
+            hasMoveTarget = false;
+        }
+    }
+
     // ── 检测玩家 ──
     float DetectPlayer()
     {
@@ -149,9 +160,11 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         Transform target = waypoints[currentWaypointIndex];
 
         // 向当前巡逻点移动
-        Vector2 newPos = Vector2.MoveTowards(
-            rb.position, target.position, patrolSpeed * Time.deltaTime);
-        rb.MovePosition(newPos);
+        Vector2 newPos = Vector2.MoveTowards(rb.position, target.position, patrolSpeed * Time.deltaTime);
+        moveTarget = newPos;
+        hasMoveTarget = true;
+
+        FlipToward(target.position);
 
         // 翻转朝向
         FlipToward(target.position);
@@ -173,9 +186,11 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         // 目标位置：玩家X + 敌人自己的Y（只在地面追击）
         Vector2 target = new Vector2(Player.position.x, transform.position.y);
 
-        Vector2 newPos = Vector2.MoveTowards(
-            rb.position, target, chaseSpeed * Time.deltaTime);
-        rb.MovePosition(newPos);
+        Vector2 newPos = Vector2.MoveTowards(rb.position, target, chaseSpeed * Time.deltaTime);
+        moveTarget = newPos;
+        hasMoveTarget = true;
+
+        FlipToward(Player.position);
 
 
         FlipToward(Player.position);
@@ -278,6 +293,10 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         isHacked = true;
         bossTarget = boss;
         rb.bodyType = RigidbodyType2D.Kinematic;
+
+        // 黑入计数 +1
+        if (playerScript != null)
+            playerScript.IncrementHackCount();
     }
 
     void HackRush()
@@ -286,7 +305,10 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
 
         Vector2 target = new Vector2(bossTarget.position.x, transform.position.y);
         Vector2 newPos = Vector2.MoveTowards(rb.position, target, hackSpeed * Time.deltaTime);
-        rb.MovePosition(newPos);
+        moveTarget = newPos;
+        hasMoveTarget = true;
+
+        FlipToward(bossTarget.position);
         FlipToward(bossTarget.position);
 
         if (Vector2.Distance(transform.position, bossTarget.position) < 1.5f)

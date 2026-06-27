@@ -21,8 +21,8 @@ public class boss2ai : MonoBehaviour
     [SerializeField] private float poiseDamageReduction = 0.1f;
     [SerializeField] private float poiseBreakDuration = 6f;
 
-    private int currentHealth;
-    private int currentPoise;
+    public int currentHealth;
+    public int currentPoise;
     private bool poiseBroken = false;
     private float poiseBreakTimer;
     private bool isDead = false;
@@ -71,7 +71,7 @@ public class boss2ai : MonoBehaviour
     [Header("技能2：激光")]
     [SerializeField] private GameObject laserPrefab;
     [SerializeField] private GameObject laserSpawnPoint;   // Boss 子级的空物体
-    [SerializeField] private float laserSweepDuration = 2f;
+    //[SerializeField] private float laserSweepDuration = 2f;
 
     [Header("技能3：减速区域")]
     [SerializeField] private GameObject slowZonePrefab;
@@ -87,6 +87,14 @@ public class boss2ai : MonoBehaviour
     [SerializeField] private Vector2 activationZoneOffset = Vector2.zero;          // 中心偏移
     [SerializeField] private LayerMask playerLayer;
     private bool isActive = false;
+
+    [Header("死亡演出")]
+    [SerializeField] private float deathZoomDuration = 2f;      // 镜头拉近多久
+    [SerializeField] private float deathZoomSize = 2f;          // 放大后 orthographicSize
+    [SerializeField] private float deathHoldTime = 1.5f;        // 停在 Boss 多久
+    [SerializeField] private Camera mainCam;
+
+    private bool isDying = false;
     // ==================== 内部状态 ====================
     private enum BossState { Idle, Casting }
     private BossState currentState = BossState.Idle;
@@ -276,31 +284,14 @@ public class boss2ai : MonoBehaviour
     /// <summary>动画事件：激光开始，生成激光物体。</summary>
     public void OnLaserStart()
     {
-        float halfH = activationZoneSize.y / 2f;
-        float centerY = transform.position.y + activationZoneOffset.y;
+        float range = Mathf.Max(activationZoneSize.x, activationZoneSize.y);
 
-        float topY, bottomY;
-        if (laserTop)
-        {
-            // 上半区：最顶部 → 中间
-            topY = centerY + halfH;
-            bottomY = centerY;
-        }
-        else
-        {
-            // 下半区：中间 → 最底部
-            topY = centerY;
-            bottomY = centerY - halfH;
-        }
-
-        float rightEdge = transform.position.x + activationZoneOffset.x + activationZoneSize.x / 2f;
-        Vector3 startPoint = new Vector3(rightEdge, 0, 0);
-
+        Vector3 startPoint = transform.position;
         GameObject laser = Instantiate(laserPrefab, startPoint, Quaternion.identity);
 
         LaserBeam lb = laser.GetComponent<LaserBeam>();
         if (lb != null)
-            lb.Init(laserTop, topY, bottomY, startPoint);
+            lb.Init(startPoint, laserTop, Random.value > 0.5f, range);
     }
 
     /// <summary>动画事件：动画结束，进入冷却。</summary>
@@ -385,20 +376,28 @@ public class boss2ai : MonoBehaviour
 
     public void TakeDamage(int rawDamage)
     {
-        if (isDead) return;
+        if (isDead || isDying) return;
 
+        // 锁血 1
+        int potentialHealth = currentHealth;
         if (!poiseBroken)
         {
             currentPoise += rawDamage;
-            if (currentPoise >= maxPoise)
-                BreakPoise();
+            if (currentPoise >= maxPoise) BreakPoise();
         }
 
         int actualDamage = poiseBroken ? rawDamage : Mathf.RoundToInt(rawDamage * poiseDamageReduction);
         if (actualDamage < 1) actualDamage = 1;
-        currentHealth -= actualDamage;
+        potentialHealth -= actualDamage;
 
-        if (currentHealth <= 0) Die();
+        if (potentialHealth <= 0)
+        {
+            currentHealth = 1;           // 锁 1 滴血
+            StartCoroutine(DeathSequence());
+            return;
+        }
+
+        currentHealth = potentialHealth;
     }
 
     void CheckActivation()//激活boss
@@ -462,6 +461,104 @@ public class boss2ai : MonoBehaviour
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null) rb.simulated = false;
         enabled = false;
+    }
+
+    IEnumerator DeathSequence()
+    {
+        Debug.Log("=== DeathSequence 开始 ===");
+
+        // 禁用玩家操作
+        player p = player.GetComponent<player>();
+        if (p != null) p.controlsDisabled = true;
+
+        if (mainCam == null) mainCam = Camera.main;
+        if (mainCam == null)
+        {
+            if (p != null) p.controlsDisabled = false;
+            yield break;
+        }
+
+        isActing = false;
+        skillMissile = false;
+        skillLaser = false;
+        skillSlow = false;
+        skillBombard = false;
+
+        Vector3 camStartPos = mainCam.transform.position;
+        float startSize = mainCam.orthographicSize;
+        Vector3 bossPos = new Vector3(transform.position.x, transform.position.y, camStartPos.z);
+
+        Debug.Log($"镜头开始拉近: {camStartPos} → {bossPos}, size {startSize} → {deathZoomSize}");
+
+        float elapsed = 0f;
+        while (elapsed < deathZoomDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / deathZoomDuration;
+            mainCam.transform.position = Vector3.Lerp(camStartPos, bossPos, t);
+            mainCam.orthographicSize = Mathf.Lerp(startSize, deathZoomSize, t);
+            yield return null;
+        }
+
+        mainCam.transform.position = bossPos;
+        mainCam.orthographicSize = deathZoomSize;
+        Debug.Log("镜头已到达 Boss，等待 " + deathHoldTime + " 秒");
+
+        yield return new WaitForSeconds(deathHoldTime);
+
+        Debug.Log("镜头弹回玩家");
+        if (player == null)
+        {
+            if (p != null) p.controlsDisabled = false;
+            yield break;
+        }
+
+        Vector3 playerPos = new Vector3(player.position.x, player.position.y, camStartPos.z);
+        float returnDuration = 0.4f;
+        elapsed = 0f;
+
+        while (elapsed < returnDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / returnDuration;
+            mainCam.transform.position = Vector3.Lerp(bossPos, playerPos, t);
+            mainCam.orthographicSize = Mathf.Lerp(deathZoomSize, startSize, t);
+            yield return null;
+        }
+
+        mainCam.transform.position = playerPos;
+        mainCam.orthographicSize = startSize;
+
+        // 恢复玩家操作
+        if (p != null) p.controlsDisabled = false;
+
+        Debug.Log("调用 DeliverFinalBlow");
+        if (p != null)
+            p.DeliverFinalBlow(transform, CheckEnding());
+        else
+            Debug.LogError("player 脚本获取失败！");
+    }
+
+    /// <summary>算力不为0→结局2，为0→结局1</summary>
+    int CheckEnding()
+    {
+        player p = player.GetComponent<player>();
+        if (p != null && p.GetCurrentCyberPower() > 0) return 2;
+        return 1;
+    }
+
+    public void FinalDeath()
+    {
+        isDead = true;
+        currentHealth = 0;
+
+        Collider2D col = GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        if (rb != null) rb.simulated = false;
+        enabled = false;
+
+        Debug.Log("Boss2 最终死亡");
     }
 
     public int GetCurrentHealth() => currentHealth;
