@@ -91,6 +91,8 @@ public class boss1ai : MonoBehaviour
 
     private Rigidbody2D rb;
 
+    private float moveFloat; // 控制移动动画
+
     // ==================== 内部状态 ====================
     private enum BossState { Idle, NormalAttack, Dash, Spawn, VerticalBullet }
     private BossState currentState = BossState.Idle;
@@ -161,6 +163,7 @@ public class boss1ai : MonoBehaviour
 
     public void Stun(float duration)
     {
+        moveFloat = 0f;
         Debug.Log("Boss 被眩晕 " + duration + " 秒！");
         isStunned = true;
         stunTimer = duration;
@@ -179,6 +182,7 @@ public class boss1ai : MonoBehaviour
     public void toAttack()
     {
         if (player == null) return;
+        if (isDashing) return;
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
@@ -232,6 +236,7 @@ public class boss1ai : MonoBehaviour
     /// </summary>
     void TryAutoAction()
     {
+        moveFloat = 0f;
         // 全局冷却还没好 → 不出招
         if (Time.time - lastActionTime < actionCooldown) return;
 
@@ -297,6 +302,7 @@ public class boss1ai : MonoBehaviour
     /// </summary>
     void MoveTowardPlayer()
     {
+        moveFloat = 1f; // ← 新增
         Vector2 target = new Vector2(player.position.x, transform.position.y);
         transform.position = Vector2.MoveTowards(
             transform.position, target, approachSpeed * Time.deltaTime);
@@ -308,14 +314,13 @@ public class boss1ai : MonoBehaviour
     /// </summary>
     void FlipToward(Vector2 target)
     {
-        // 只翻转 X 的符号，保留原有体型
         Vector3 scale = transform.localScale;
-        float absX = Mathf.Abs(scale.x);   // 原始体型宽度
+        float absX = Mathf.Abs(scale.x);
 
         if (target.x > transform.position.x)
-            transform.localScale = new Vector3(absX, scale.y, scale.z);   // 朝右
-        else if (target.x < transform.position.x)
             transform.localScale = new Vector3(-absX, scale.y, scale.z);  // 朝左
+        else if (target.x < transform.position.x)
+            transform.localScale = new Vector3(absX, scale.y, scale.z);   // 朝右
     }
 
     // ==================== 外部调用入口 ====================
@@ -355,6 +360,7 @@ public class boss1ai : MonoBehaviour
         animator.SetBool("dash", DashBool);
         animator.SetBool("SpawnRoutine", SpawnBool); 
         animator.SetBool("missile", missileBool);
+        animator.SetFloat("movetrue", moveFloat); // ← 新增
     }
 
     // ==================== 状态一：三段式普通攻击 ====================
@@ -413,13 +419,17 @@ public class boss1ai : MonoBehaviour
         if (!isDashing) return;
 
         float direction = dashTargetPos.x > transform.position.x ? 1f : -1f;
-        float step = dashSpeed * Time.deltaTime + 0.1f;  // 多探一点，安全边际
+        float step = dashSpeed * Time.deltaTime + 0.1f;
 
-        // BoxCast 检测前方是否有墙（用 Boss 碰撞体大小）
         Collider2D col = GetComponent<Collider2D>();
+
+        // 从碰撞体边缘发射，而非中心
+        Vector2 origin = rb.position + Vector2.right * direction * (col.bounds.extents.x - 0.05f);
+        Vector2 boxSize = new Vector2(0.1f, col.bounds.size.y * 0.4f); // 窄盒
+
         RaycastHit2D hit = Physics2D.BoxCast(
-            transform.position,
-            col.bounds.size,
+            origin,
+            boxSize,
             0f,
             Vector2.right * direction,
             step,
@@ -428,7 +438,6 @@ public class boss1ai : MonoBehaviour
 
         if (hit.collider != null)
         {
-            // 撞墙，停在墙前
             float stopX = hit.point.x - direction * col.bounds.extents.x;
             Vector2 stopPos = new Vector2(stopX, rb.position.y);
             rb.MovePosition(stopPos);

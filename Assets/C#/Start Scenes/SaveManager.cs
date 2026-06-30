@@ -7,7 +7,7 @@ using UnityEngine;
 [Serializable]
 public class SaveManager : MonoBehaviour
 {
-    public const int MAX_SLOTS = 3;
+    public const int MAX_SLOTS = 4;
     private static string saveFolder = Application.persistentDataPath + "/Saves";
 
     public static string GetSlotPath(int slot) => $"{saveFolder}/slot_{slot}.json";

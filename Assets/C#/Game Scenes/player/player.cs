@@ -24,6 +24,7 @@ public class player : MonoBehaviour
     [Header("攻击使用组件")]
     public bool attack;
     private float attackGuardTimer = 0f;
+    private bool attackLocked = false;
 
     [Header("冲刺使用组件")]
     public float dashSpeed = 20f;//冲刺时速度
@@ -82,6 +83,7 @@ public class player : MonoBehaviour
     [Header("算力消耗")]
     [SerializeField] private int coverActivationCost = 3;
     [SerializeField] private int boss2MissileHackCost = 5;//黑导弹的
+    [SerializeField] private int trapActivationCost = 3;
 
     private List<Boss2Missile> hackedBoss2Missiles = new List<Boss2Missile>();
 
@@ -104,6 +106,15 @@ public class player : MonoBehaviour
 
     [HideInInspector] public bool controlsDisabled = false;
 
+    [Header("动画 Bool 值")]
+    public bool attacktrue;
+    public bool dfstrue;
+    public bool defensedowntrue;
+    public bool jumptrue;
+    public bool dashtrue;
+    public float runfloat;
+
+    
     public void SetHackCount(int count) => hackCount = count;
     public int GetHackCount() => hackCount;
     public void SetCyberPower(int power) { currentCyberPower = power; UpdateCyberUI(); }
@@ -151,17 +162,19 @@ public class player : MonoBehaviour
     public void move()//移动
     {
         if (isKnockedBack) return;
+        if (isKnockedBack || attackLocked) return;
+        if (isDashing) return;
 
-        if (isDashing)
-        {
-            return;
-        }
         number = Input.GetAxis("Horizontal");
-        playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);//移动代码number乘以speed速度是
-        if (!attack)
-        {
-            File();
-        }
+        playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);
+
+        // 奔跑动画：地面 + 有水平输入 → 用速度绝对值
+        if (inground && Mathf.Abs(number) > 0.1f)
+            runfloat = Mathf.Abs(number);
+        else
+            runfloat = 0f;
+
+        if (!attack) File();
     }
 
     private void File()//镜像反转
@@ -178,19 +191,33 @@ public class player : MonoBehaviour
 
     private void JUMP()//跳跃
     {
-        isFalling = playerRb.velocity.y < 0;//y轴变化小于0时触发
-        if (Input.GetButtonDown("Jump") && inground)//跳跃需要
+        isFalling = playerRb.velocity.y < 0;
+
+        if (Input.GetButtonDown("Jump") && inground)
         {
             isGliding = false;
             playerRb.gravityScale = 6;
             playerRb.velocity = new Vector2(playerRb.velocity.x, speedjump);
+            jumptrue = true;
         }
-        if (isFalling == true && Input.GetKey(KeyCode.Space) && !isGliding && !inground)//这个if都是滑翔虽然好像没要求二段跳的但是我还是做了兼容
+
+        // 上升→跳跃动画，下降→下落动画
+        if (playerRb.velocity.y > 0.1f && !inground)
+            jumptrue = true;
+        else if (playerRb.velocity.y <= 0 && !inground)
+        {
+            jumptrue = false;
+        }
+
+        if (inground)
+            jumptrue = false;
+
+        if (isFalling && Input.GetKey(KeyCode.Space) && !isGliding && !inground)
         {
             isGliding = true;
             playerRb.gravityScale = 0.3f;
         }
-        else if(isFalling == false || !Input.GetKey(KeyCode.Space))
+        else if (!isFalling || !Input.GetKey(KeyCode.Space))
         {
             isGliding = false;
             playerRb.gravityScale = 6;
@@ -204,30 +231,32 @@ public class player : MonoBehaviour
 
     public void dash()//用于实现冲刺实现后带入移动
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && cooldownTimer <= 0)//按下左shift并且不在冲刺并且冷却为0
+        float input = Input.GetAxisRaw("Horizontal");
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && cooldownTimer <= 0 && Mathf.Abs(input) > 0.1f)
         {
             isDashing = true;
+            dashtrue = true;
             dashTimer = dashTime;
             cooldownTimer = dashCooldown;
 
-            // 冲刺开始时锁方向
-            float input = Input.GetAxisRaw("Horizontal");//有点丑陋但是作用是锁定冲刺方向删掉会没法动
-            if (Mathf.Abs(input) > 0.1f)                 //怠惰一下先不搞明白了大d老师倾情编写
+            if (Mathf.Abs(input) > 0.1f)
                 dashDir = input > 0 ? 1 : -1;
             else
-                dashDir = transform.localScale.x > 0 ? 1 : -1;  // 按朝向
+                dashDir = transform.localScale.x > 0 ? 1 : -1;
 
             playerRb.gravityScale = 0;
         }
 
         if (isDashing)
         {
-            playerRb.velocity = new Vector2(dashDir * dashSpeed, 0);  // 锁死方向
+            playerRb.velocity = new Vector2(dashDir * dashSpeed, 0);
             dashTimer -= Time.deltaTime;
 
             if (dashTimer <= 0)
             {
                 isDashing = false;
+                dashtrue = false;
                 playerRb.velocity = Vector2.zero;
                 playerRb.gravityScale = 3f;
             }
@@ -245,46 +274,68 @@ public class player : MonoBehaviour
 
     public void Attacking()//攻击用目前占位但是已做等待动画完善
     {
-        if (hackingMode) return;   // 黑入中不攻击
-                                   // 防护冷却中
+        if (hackingMode || controlsDisabled || attackLocked) return;
+
         if (attackGuardTimer > 0)
         {
             attackGuardTimer -= Time.deltaTime;
             return;
         }
-        if (Input.GetButtonDown("Fire1") && !attack)   // ← 加 && !attack
+
+        if (Input.GetButtonDown("Fire1") && !attack && !isDashing)
         {
             attack = true;
+            attacktrue = true;
+            attackLocked = true;
+            playerRb.velocity = new Vector2(0, playerRb.velocity.y);   // 停住水平滑动
+            StartCoroutine(AttackUnlock());
         }
+    }
+
+    IEnumerator AttackUnlock()
+    {
+        yield return new WaitForSeconds(0.2f);
+        attackLocked = false;
     }
 
     public void AttackEnd()//攻击结束
     {
         attack = false;
-        attackGuardTimer = 0.1f;   // 100ms 内无法再次攻击，足够 Animator 归位
-
-
+        attacktrue = false;
+        controlsDisabled = false;    // 动画结束彻底释放
+        attackGuardTimer = 0.1f;
     }
 
     public void Defense()//防御占位
     {
-        if (hackingMode) return;
-        // 按下右键 → 完美弹反开始
+        if (hackingMode || isDashing) return;
+
         if (Input.GetMouseButtonDown(1))
         {
             isBlocking = true;
             perfectActive = true;
+            dfstrue = true;
+            defensedowntrue = false;
             StartCoroutine(PerfectWindowTimer());
-            sr.color = Color.red;
         }
 
-        // 松开右键 → 取消
         if (Input.GetMouseButtonUp(1))
         {
-            isBlocking = false;
-            perfectActive = false;
-            sr.color = Color.white;
+            if (Input.GetMouseButtonUp(1))
+            {
+                isBlocking = false;
+                perfectActive = false;
+                defensedowntrue = true;
+                // dfstrue 先不动，等放下动画播完再关
+                StartCoroutine(DefenseDownTimer());
+            }
         }
+    }
+    IEnumerator DefenseDownTimer()
+    {
+        yield return new WaitForSeconds(0.3f);  // 放下动画长度
+        dfstrue = false;
+        defensedowntrue = false;
     }
 
     public void Hacker()
@@ -381,6 +432,12 @@ public class player : MonoBehaviour
                 hackedBoss2Missiles.Add(m);
             }
         }
+        TrapControl[] traps = FindObjectsOfType<TrapControl>();
+        foreach (TrapControl t in traps)
+            t.SetForHack(true);
+        ZoneController[] zones = FindObjectsOfType<ZoneController>();
+        foreach (ZoneController z in zones)
+            z.SetForHack(true);
         if (sr != null) sr.color = new Color(0f, 3f, 1f);
     }
 
@@ -442,6 +499,12 @@ public class player : MonoBehaviour
         {
             if (m != null) m.SetHighlight(false);
         }
+        TrapControl[] traps = FindObjectsOfType<TrapControl>();
+        foreach (TrapControl t in traps)
+            t.SetForHack(false);
+        ZoneController[] zones = FindObjectsOfType<ZoneController>();
+        foreach (ZoneController z in zones)
+            z.SetForHack(false);
         hackedBoss2Missiles.Clear();
         hackedBullets.Clear();
         if (sr != null) sr.color = Color.white;
@@ -458,7 +521,13 @@ public class player : MonoBehaviour
 
     private void SwitchAnim()//动画判定
     {
-        anim.SetBool("attacktrue", attack);
+        anim.SetBool("attacktrue", attacktrue);
+        anim.SetBool("dfstrue", dfstrue);
+        anim.SetBool("defensedowntrue", defensedowntrue);
+        anim.SetBool("jumptrue", jumptrue);
+        anim.SetBool("dashtrue", dashtrue);
+        anim.SetFloat("runfloat", runfloat);
+        anim.SetBool("grounded", inground);
     }
 
     public void TakeDamage(int damage)
@@ -526,6 +595,42 @@ public class player : MonoBehaviour
         ExitHackMode(5f);   // ← 加这行
     }
 
+    public void TryActivateTrap(TrapControl trap)
+    {
+        if (!hackingMode || trap == null) return;
+
+        // 教程陷阱不消耗算力、不加计数
+        if (!trap.isTutorial)
+        {
+            if (!cyberSystemEnabled)
+            {
+                Debug.Log("算力系统未启用！");
+                return;
+            }
+
+            if (currentCyberPower < trapActivationCost)
+            {
+                Debug.Log("算力不足！");
+                return;
+            }
+
+            currentCyberPower -= trapActivationCost;
+            UpdateCyberUI();
+            IncrementHackCount();
+        }
+
+        trap.Activate();
+        ExitHackMode(5f);   // 教程也退出黑入 + 冷却
+    }
+
+    public void TryActivateZone(ZoneController zone)
+    {
+        if (!hackingMode || zone == null) return;
+
+        IncrementHackCount();
+        zone.Activate();
+        ExitHackMode(5f);
+    }
     /// <summary>可否传送（冷却检查）</summary>
     public bool CanTeleport()
     {
