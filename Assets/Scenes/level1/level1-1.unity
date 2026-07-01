@@ -682,6 +682,13 @@ MonoBehaviour:
   arrivalDelay: 0.3
   playExit: 1
   nextSceneIndex: 3
+  endingTextPanel: {fileID: 0}
+  endingText: {fileID: 0}
+  endingLines1: []
+  endingLines2: []
+  textSpeed: 0.05
+  textStartDelay: 0.5
+  isEndingScene: 0
 --- !u!95 &587623508
 Animator:
   serializedVersion: 5
@@ -1209,7 +1216,7 @@ Transform:
   m_GameObject: {fileID: 1182186111}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -17.66, y: -7.25, z: 0}
+  m_LocalPosition: {x: -15.6, y: -7.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

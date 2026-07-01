@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class SceneGate : MonoBehaviour
 {
@@ -16,6 +17,17 @@ public class SceneGate : MonoBehaviour
     [Header("退场动画")]
     [SerializeField] private bool playExit = true;
     [SerializeField] private int nextSceneIndex;
+
+    [Header("结局文本")]
+    [SerializeField] private GameObject endingTextPanel;        // 包含 Text 的面板
+    [SerializeField] private Text endingText;
+    [SerializeField] private string[] endingLines1;             // 算力=0 的文本
+    [SerializeField] private string[] endingLines2;             // 算力>0 的文本
+    [SerializeField] private float textSpeed = 0.05f;           // 逐字速度
+    [SerializeField] private float textStartDelay = 0.5f;       // 动画结束后延迟
+
+    [Header("结局")]
+    [SerializeField] private bool isEndingScene = false;   // 勾上就走结局文本，不勾正常切场景
 
     private player currentPlayer;
     private Animator gateAnim;
@@ -146,12 +158,55 @@ public class SceneGate : MonoBehaviour
     /// <summary>退场动画末端 Animation Event 调用</summary>
     public void OnExitEnd()
     {
-        DoSwitchScene();
+        if (isEndingScene)
+            StartCoroutine(PlayEndingText());
+        else
+            DoSwitchScene();
+    }
+
+    IEnumerator PlayEndingText()
+    {
+        yield return new WaitForSecondsRealtime(textStartDelay);
+
+        int cyberPower = currentPlayer != null ? currentPlayer.GetCyberPower() : 0;
+        string[] lines = cyberPower > 0 ? endingLines2 : endingLines1;
+
+        if (endingTextPanel != null) endingTextPanel.SetActive(true);
+        if (endingText == null) yield break;
+
+        foreach (string line in lines)
+        {
+            endingText.text = "";
+            foreach (char c in line)
+            {
+                endingText.text += c;
+                yield return new WaitForSecondsRealtime(textSpeed);
+            }
+            while (!Input.anyKeyDown) yield return null;
+            yield return null;
+        }
+
+        endingText.text += "\n\n—— 点击任意键返回主菜单 ——";
+        while (!Input.anyKeyDown) yield return null;
+
+        SceneManager.LoadScene(0);
     }
 
     void DoSwitchScene()
     {
         GameManager.Instance?.SaveToSlot(-1);
         SceneManager.LoadScene(nextSceneIndex);
+    }
+
+    public void TriggerEnding(int ending)
+    {
+        if (exitTriggered) return;
+        exitTriggered = true;
+
+        // 直接播退场动画
+        if (playExit && gateAnim != null)
+            gateAnim.SetBool("gonextlevel", true);
+        else
+            OnExitEnd();
     }
 }

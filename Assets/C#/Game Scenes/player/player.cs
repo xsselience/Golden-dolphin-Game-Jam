@@ -106,6 +106,10 @@ public class player : MonoBehaviour
 
     [HideInInspector] public bool controlsDisabled = false;
 
+    [Header("死亡显示")]
+    [SerializeField] private GameObject deathObject1;   // 死亡时显示的物体1
+    [SerializeField] private GameObject deathObject2;   // 死亡时显示的物体2
+
     [Header("动画 Bool 值")]
     public bool attacktrue;
     public bool dfstrue;
@@ -540,7 +544,26 @@ public class player : MonoBehaviour
         if (health <= 0)
         {
             controlsDisabled = true;
-            anim.SetBool("die", true);
+
+            if (deathObject1 != null) deathObject1.SetActive(true);
+            if (deathObject2 != null) deathObject2.SetActive(true);
+
+            // 清空所有动画状态
+            attacktrue = false;
+            dfstrue = false;
+            defensedowntrue = false;
+            jumptrue = false;
+            dashtrue = false;
+            runfloat = 0f;
+
+            anim.SetBool("attacktrue", false);
+            anim.SetBool("dfstrue", false);
+            anim.SetBool("defensedowntrue", false);
+            anim.SetBool("jumptrue", false);
+            anim.SetBool("dashtrue", false);
+            anim.SetFloat("runfloat", 0f);
+
+            anim.SetTrigger("dietrue");
         }
     }
 
@@ -702,12 +725,9 @@ public class player : MonoBehaviour
     {
         isKnockedBack = true;
 
-        // 大力击飞玩家（远离 Boss）
         float facing = transform.position.x > boss.position.x ? 1f : -1f;
         Vector2 dir = new Vector2(facing, 0.8f);
-
-        Rigidbody2D prb = playerRb;
-        prb.velocity = dir * finalBlowKnockbackForce;
+        playerRb.velocity = dir * finalBlowKnockbackForce;
 
         StartCoroutine(FinalBlowRoutine(boss, ending));
     }
@@ -717,13 +737,11 @@ public class player : MonoBehaviour
         yield return new WaitForSeconds(finalBlowKnockbackDuration);
         isKnockedBack = false;
 
-        // Boss 死亡
         boss2ai b2 = boss.GetComponent<boss2ai>();
-        if (b2 != null)
-            b2.FinalDeath();
+        if (b2 != null) b2.FinalDeath();
 
-        // 播 Timeline 结局
-        PlayEndingTimeline(ending);
+        SceneGate gate = FindObjectOfType<SceneGate>();
+        if (gate != null) gate.TriggerEnding(ending);
     }
 
     void PlayEndingTimeline(int ending)
