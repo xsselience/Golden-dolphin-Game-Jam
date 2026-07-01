@@ -80,6 +80,15 @@ public class boss1ai : MonoBehaviour
     [SerializeField] private float zoomHoldTime = 0.6f;           // 在 Boss 身上停多久
     [SerializeField] private float hackBanDuration = 10f;         // 禁用黑入多久
 
+    [Header("场景机关")]
+    [SerializeField] private Transform activateDropObject;    // 激活时下降的物体
+    [SerializeField] private float activateDropDistance = 5f;
+    [SerializeField] private float activateDropSpeed = 3f;
+
+    [SerializeField] private Transform deathRiseObject;       // 死亡时上升的物体
+    [SerializeField] private float deathRiseDistance = 5f;
+    [SerializeField] private float deathRiseSpeed = 3f;
+
     private bool counterHackTriggered = false;
 
     private float lastActionTime = -99f;          // 上次出招时间
@@ -209,6 +218,8 @@ public class boss1ai : MonoBehaviour
             {
                 isActive = true;
                 Debug.Log("Boss 已激活！");
+                if (activateDropObject != null)
+                    StartCoroutine(MoveDown(activateDropObject, activateDropDistance, activateDropSpeed));
             }
             else
             {
@@ -608,6 +619,10 @@ public class boss1ai : MonoBehaviour
             isDashing = false;
             if (!animator.enabled) animator.enabled = true;
 
+            // 死亡机关上升
+            if (deathRiseObject != null)
+                StartCoroutine(MoveUp(deathRiseObject, deathRiseDistance, deathRiseSpeed));
+
             Debug.Log("Boss 死亡");
         }
     }
@@ -687,5 +702,31 @@ public class boss1ai : MonoBehaviour
         // 近战范围 — 红色圈
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, meleeRange);
+    }
+
+    IEnumerator MoveDown(Transform obj, float distance, float speed)
+    {
+        Vector3 startPos = obj.position;
+        Vector3 endPos = startPos + Vector3.down * distance;
+
+        while (Vector3.Distance(obj.position, endPos) > 0.02f)
+        {
+            obj.position = Vector3.MoveTowards(obj.position, endPos, speed * Time.deltaTime);
+            yield return null;
+        }
+        obj.position = endPos;
+    }
+
+    IEnumerator MoveUp(Transform obj, float distance, float speed)
+    {
+        Vector3 startPos = obj.position;
+        Vector3 endPos = startPos + Vector3.up * distance;
+
+        while (Vector3.Distance(obj.position, endPos) > 0.02f)
+        {
+            obj.position = Vector3.MoveTowards(obj.position, endPos, speed * Time.deltaTime);
+            yield return null;
+        }
+        obj.position = endPos;
     }
 }

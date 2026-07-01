@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 13.71, y: 0.41, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3850709265208691926}
@@ -179,12 +179,12 @@ MonoBehaviour:
   waypoints:
   - {fileID: 0}
   - {fileID: 0}
-  patrolSpeed: 18
+  patrolSpeed: 12
   waitAtWaypoint: 1
-  chaseSpeed: 22
-  detectionRange: 4
+  chaseSpeed: 18
+  detectionRange: 12
   detectionAngle: 45
-  attackRange: 1.8
+  attackRange: 2.4
   attackCooldown: 1.5
   playerLayer:
     serializedVersion: 2

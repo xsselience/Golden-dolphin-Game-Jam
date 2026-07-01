@@ -21,6 +21,12 @@ public class boss2ai : MonoBehaviour
     [SerializeField] private float poiseDamageReduction = 0.1f;
     [SerializeField] private float poiseBreakDuration = 6f;
 
+    [Header("场景机关")]
+    [SerializeField] private Transform activateDropObject;
+    [SerializeField] private float activateDropDistance = 5f;
+    [SerializeField] private float activateDropSpeed = 3f;
+
+    [Header("当前状态")]
     public int currentHealth;
     public int currentPoise;
     private bool poiseBroken = false;
@@ -45,6 +51,11 @@ public class boss2ai : MonoBehaviour
     [SerializeField] private float skill2Cooldown = 5f;
     [SerializeField] private float skill3Cooldown = 6f;
     [SerializeField] private float skill4Cooldown = 3f;
+
+    [Header("受击点")]
+    [SerializeField] private int deactivateInPhase2 = 1;   // 进阶段 2 失效第几个（索引）
+    [SerializeField] private int deactivateInPhase3 = 0;   // 进阶段 3 再失效第几个
+    private Boss2HitPoint[] hitPoints = new Boss2HitPoint[3];
 
     private int currentSkillIndex = 0;
     private float[] lastSkillTimes = new float[4];
@@ -72,6 +83,12 @@ public class boss2ai : MonoBehaviour
     [SerializeField] private GameObject laserPrefab;
     [SerializeField] private GameObject laserSpawnPoint;   // Boss 子级的空物体
     //[SerializeField] private float laserSweepDuration = 2f;
+    [Header("技能2：激光预警物体")]
+    [SerializeField] private GameObject leftWarningObj;    // 往左扫前闪烁
+    [SerializeField] private GameObject rightWarningObj;   // 往右扫前闪烁
+    private bool warningDone = false;
+
+    private bool laserRightHalf;
 
     [Header("技能3：减速区域")]
     [SerializeField] private GameObject slowZonePrefab;
@@ -116,6 +133,8 @@ public class boss2ai : MonoBehaviour
 
         if (leftLamp != null) leftLamp.color = Color.gray;
         if (rightLamp != null) rightLamp.color = Color.gray;
+        if (leftWarningObj != null) leftWarningObj.SetActive(false);
+        if (rightWarningObj != null) rightWarningObj.SetActive(false);
     }
 
     // ==================== 主循环 ====================
@@ -160,6 +179,11 @@ public class boss2ai : MonoBehaviour
             phase3Triggered = true;
             currentPhase = Phase.Phase3;
             if (rightLamp != null) rightLamp.color = Color.red;
+
+            // 失效一个受击点
+            if (deactivateInPhase3 >= 0 && deactivateInPhase3 < 3 && hitPoints[deactivateInPhase3] != null)
+                hitPoints[deactivateInPhase3].SetActive(false);
+
             Debug.Log("Boss2 进入阶段3！");
         }
         else if (hpPercent <= phase2Threshold && !phase2Triggered)
@@ -167,6 +191,11 @@ public class boss2ai : MonoBehaviour
             phase2Triggered = true;
             currentPhase = Phase.Phase2;
             if (leftLamp != null) leftLamp.color = Color.red;
+
+            // 失效一个受击点
+            if (deactivateInPhase2 >= 0 && deactivateInPhase2 < 3 && hitPoints[deactivateInPhase2] != null)
+                hitPoints[deactivateInPhase2].SetActive(false);
+
             Debug.Log("Boss2 进入阶段2！");
         }
     }
@@ -235,7 +264,12 @@ public class boss2ai : MonoBehaviour
                 break;
             case 1:
                 laserTop = Random.value > 0.5f;
+                laserRightHalf = Random.value > 0.5f;
                 skillLaser = true;
+
+                // 上方生成时左右取反
+                bool warnRight = laserTop ? !laserRightHalf : laserRightHalf;
+                StartCoroutine(BlinkWarning(warnRight ? rightWarningObj : leftWarningObj));
                 break;
             case 2:
                 skillSlow = true;
@@ -280,18 +314,46 @@ public class boss2ai : MonoBehaviour
     }
 
     // ==================== 技能2：激光（动画事件）====================
+    IEnumerator BlinkWarning(GameObject obj)
+    {
+        if (obj == null) yield break;
+
+        warningDone = false;
+        obj.SetActive(true);
+
+        for (int i = 0; i < 2; i++)
+        {
+            obj.SetActive(false);
+            yield return new WaitForSeconds(0.15f);
+            obj.SetActive(true);
+            yield return new WaitForSeconds(0.15f);
+        }
+
+        warningDone = true;
+    }
 
     /// <summary>动画事件：激光开始，生成激光物体。</summary>
     public void OnLaserStart()
     {
-        float range = Mathf.Max(activationZoneSize.x, activationZoneSize.y);
+        // 等闪烁完成再隐藏
+        if (!warningDone)
+        {
+            StartCoroutine(HideAfterWarning());
+            return;
+        }
 
-        Vector3 startPoint = transform.position;
+        HideWarningAndFire();
+        if (leftWarningObj != null) leftWarningObj.SetActive(false);
+        if (rightWarningObj != null) rightWarningObj.SetActive(false);
+
+        float range = Mathf.Max(activationZoneSize.x, activationZoneSize.y);
+        Vector3 startPoint = laserSpawnPoint != null ? laserSpawnPoint.transform.position : transform.position;
+
         GameObject laser = Instantiate(laserPrefab, startPoint, Quaternion.identity);
 
         LaserBeam lb = laser.GetComponent<LaserBeam>();
         if (lb != null)
-            lb.Init(startPoint, laserTop, Random.value > 0.5f, range);
+            lb.Init(startPoint, laserTop, laserRightHalf, range);
     }
 
     /// <summary>动画事件：动画结束，进入冷却。</summary>
@@ -299,6 +361,26 @@ public class boss2ai : MonoBehaviour
     {
         skillLaser = false;
         EndSkill(1);
+    }
+
+
+    IEnumerator HideAfterWarning()
+    {
+        while (!warningDone) yield return null;
+        HideWarningAndFire();
+    }
+
+    void HideWarningAndFire()
+    {
+        if (leftWarningObj != null) leftWarningObj.SetActive(false);
+        if (rightWarningObj != null) rightWarningObj.SetActive(false);
+
+        float range = Mathf.Max(activationZoneSize.x, activationZoneSize.y);
+        Vector3 startPoint = laserSpawnPoint != null ? laserSpawnPoint.transform.position : transform.position;
+        GameObject laser = Instantiate(laserPrefab, startPoint, Quaternion.identity);
+
+        LaserBeam lb = laser.GetComponent<LaserBeam>();
+        if (lb != null) lb.Init(startPoint, laserTop, laserRightHalf, range);
     }
 
     // ==================== 技能3：减速区域（动画事件）====================
@@ -399,6 +481,12 @@ public class boss2ai : MonoBehaviour
 
         currentHealth = potentialHealth;
     }
+    public void RegisterHitPoint(Boss2HitPoint hp)
+    {
+        int idx = hp.GetIndex();
+        if (idx >= 0 && idx < 3)
+            hitPoints[idx] = hp;
+    }
 
     void CheckActivation()//激活boss
     {
@@ -408,14 +496,14 @@ public class boss2ai : MonoBehaviour
         if (hit != null)
         {
             isActive = true;
-            Debug.Log("Boss2 已激活！");
 
-        }
-        if (isActive)
-        {
+            if (activateDropObject != null)
+                StartCoroutine(MoveDown(activateDropObject, activateDropDistance, activateDropSpeed));
             player p = hit.GetComponent<player>();
             if (p != null)
+            {
                 p.EnableCyberSystem();
+            }
         }
     }
 
@@ -567,4 +655,16 @@ public class boss2ai : MonoBehaviour
     public int GetMaxPoise() => maxPoise;
     public bool IsPoiseBroken() => poiseBroken;
     public Phase GetPhase() => currentPhase;
+
+    IEnumerator MoveDown(Transform obj, float distance, float speed)
+    {
+        Vector3 endPos = obj.position + Vector3.down * distance;
+
+        while (Vector3.Distance(obj.position, endPos) > 0.02f)
+        {
+            obj.position = Vector3.MoveTowards(obj.position, endPos, speed * Time.deltaTime);
+            yield return null;
+        }
+        obj.position = endPos;
+    }
 }

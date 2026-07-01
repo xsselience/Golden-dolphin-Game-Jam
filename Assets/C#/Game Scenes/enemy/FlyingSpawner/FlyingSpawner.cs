@@ -32,7 +32,7 @@ public class FlyingSpawner : MonoBehaviour
     private int currentWaypointIndex;
     private float bobTimer;
     private float alertTimer;
-    private bool alerted = false;
+    //private bool alerted = false;
     private bool spawned = false;
 
     private float baseY;

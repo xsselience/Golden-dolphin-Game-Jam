@@ -31,8 +31,10 @@ public class DialogueUI : MonoBehaviour
         isPlaying = true;
         dialoguePanel.SetActive(true);
 
-        player p = GetComponentInParent<player>();
-        if (p != null) p.controlsDisabled = true;
+        isPlaying = true;
+        Time.timeScale = 0f;                      // 暂停游戏
+        dialoguePanel.SetActive(true);
+
 
         foreach (string line in lines)
         {
@@ -47,7 +49,7 @@ public class DialogueUI : MonoBehaviour
                 foreach (char c in content)
                 {
                     contentText.text += c;
-                    yield return new WaitForSeconds(textSpeed);
+                    yield return new WaitForSecondsRealtime(textSpeed);
                 }
             }
 
@@ -58,7 +60,7 @@ public class DialogueUI : MonoBehaviour
         }
 
         dialoguePanel.SetActive(false);
-        if (p != null) p.controlsDisabled = false;
+        Time.timeScale = 1f;                     // 恢复
         isPlaying = false;
     }
 

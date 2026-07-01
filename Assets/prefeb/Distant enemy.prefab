@@ -41,7 +41,7 @@ GameObject:
   m_Component:
   - component: {fileID: 168410148553214039}
   - component: {fileID: 584965819391112749}
-  - component: {fileID: 1074933795156318317}
+  - component: {fileID: -6586298206053626420}
   - component: {fileID: 1155110227548239506}
   - component: {fileID: 2029195982206340262}
   m_Layer: 0
@@ -61,7 +61,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 46.56, y: -10.77, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7687792144114896373}
@@ -119,8 +119,8 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!66 &1074933795156318317
-CompositeCollider2D:
+--- !u!61 &-6586298206053626420
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -152,16 +152,18 @@ CompositeCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_GeometryType: 0
-  m_GenerationType: 0
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.8828125, y: 1}
+    newSize: {x: 0.8828125, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 0.8828125, y: 1}
   m_EdgeRadius: 0
-  m_ColliderPaths: []
-  m_CompositePaths:
-    m_Paths: []
-  m_VertexDistance: 0.0005
-  m_OffsetDistance: 0.00005
-  m_UseDelaunayMesh: 0
-  m_CompositeGameObject: {fileID: 3669998948967857563}
 --- !u!50 &1155110227548239506
 Rigidbody2D:
   serializedVersion: 4
@@ -207,11 +209,11 @@ MonoBehaviour:
   patrolSpeed: 15
   waitAtWaypoint: 1
   chaseSpeed: 18
-  detectionRange: 10
+  detectionRange: 12
   detectionAngle: 29.5
   attackRange: 8
   attackCooldown: 2
-  bulletPrefab: {fileID: 396584733270929851, guid: 1f731cea873f329469b0edc974eadd25, type: 3}
+  bulletPrefab: {fileID: 5336662030200488541, guid: a81d6c9cc7c15004d81b07793e63a9cf, type: 3}
   firePoint: {fileID: 7687792144114896373}
   bulletSpeed: 30
   bulletDamage: 12

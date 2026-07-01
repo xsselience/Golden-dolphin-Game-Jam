@@ -565,7 +565,7 @@ public class player : MonoBehaviour
     {
         cyberSystemEnabled = true;
         // 最大值减去黑入次数
-        currentCyberPower = maxCyberPower - hackCount;
+        currentCyberPower = maxCyberPower - hackCount*2;
         if (currentCyberPower < 0) currentCyberPower = 0;
         UpdateCyberUI();
     }

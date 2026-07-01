@@ -28,8 +28,8 @@ Transform:
   m_GameObject: {fileID: 4190739378661056892}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.75, y: 0, z: 0}
-  m_LocalScale: {x: 1.3, y: 0.4, z: 1}
+  m_LocalPosition: {x: 0.9792, y: -0, z: 0}
+  m_LocalScale: {x: 1.7585099, y: 0.4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7587336022602461245}
@@ -350,7 +350,7 @@ MonoBehaviour:
   waitAtWaypoint: 1
   chaseSpeed: 18
   detectionRange: 12
-  attackRange: 1.5
+  attackRange: 2
   attackCooldown: 1.5
   playerLayer:
     serializedVersion: 2

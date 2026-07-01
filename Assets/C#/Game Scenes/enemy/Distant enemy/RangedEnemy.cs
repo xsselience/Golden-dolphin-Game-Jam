@@ -50,8 +50,6 @@ public class RangedEnemy : MonoBehaviour
         attackTimer = 0f;
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        rb.bodyType = RigidbodyType2D.Kinematic;   // 加这行
-        rb.gravityScale = 0f;                       // 加了也没坏处
         CalculatePatrolBounds();
     }
 
@@ -191,21 +189,24 @@ public class RangedEnemy : MonoBehaviour
     {
         if (bulletPrefab == null)
         {
-            Debug.LogError("bulletPrefab 未赋值！");
             return;
         }
 
         Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
-        Debug.Log($"生成子弹: spawnPos={spawnPos} player={player}");
         GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
+
+        Collider2D enemyCol = GetComponent<Collider2D>();
+        Collider2D bulletCol = bullet.GetComponent<Collider2D>();
+        if (enemyCol != null && bulletCol != null)
+            Physics2D.IgnoreCollision(bulletCol, enemyCol);
+
+
         Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
-        Debug.Log($"子弹 Rigidbody2D: {(bulletRb != null)} bodyType={bulletRb?.bodyType}");
 
         if (bulletRb != null)
         {
             Vector2 dir = (player.position - spawnPos).normalized;
             bulletRb.velocity = dir * bulletSpeed;
-            Debug.Log($"子弹速度: {bulletRb.velocity}");
         }
 
         EnemyBullet eb = bullet.GetComponent<EnemyBullet>();

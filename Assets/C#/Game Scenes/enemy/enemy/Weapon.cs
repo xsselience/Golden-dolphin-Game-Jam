@@ -16,10 +16,10 @@ public class Weapon : MonoBehaviour
     /// 如果用的是 3D，把 OnTriggerEnter2D 改成 OnTriggerEnter，
     /// 把 Collider2D 改成 Collider。
     /// </summary>
-    //void OnTriggerEnter2D(Collider2D other)
-    //{
-    //    HandleHit(other.gameObject);
-    //}
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        HandleHit(other.gameObject);
+    }
 
     /// <summary>
     /// 物理碰撞检测（2D），如果你没用 Trigger 而是实体碰撞
@@ -34,6 +34,7 @@ public class Weapon : MonoBehaviour
     /// </summary>
     void HandleHit(GameObject hitObject)
     {
+        Debug.Log($"武器碰到: {hitObject.name}  layer={hitObject.layer}  playerLayer勾了吗");
         int hitLayer = 1 << hitObject.layer;
 
         // ── 打到玩家 ──//防御判定在这改（应该）

@@ -21,38 +21,33 @@ public class playerweapon : MonoBehaviour
 
     void HandleHit(GameObject hitObject)
     {
+        Debug.Log($"武器命中: {hitObject.name} timeScale={Time.timeScale}");
         int hitLayer = 1 << hitObject.layer;
+
+        Boss2HitPoint hp = hitObject.GetComponent<Boss2HitPoint>();
+        if (hp != null) { hp.TakeHit(damageToEnemy); return; }
 
         if ((hitLayer & enemyLayer) != 0)
         {
-            // 普通小兵（bossenemy）
+            // 近战小兵
             bossenemy smallEnemy = hitObject.GetComponent<bossenemy>();
-            if (smallEnemy != null)
-            {
-                smallEnemy.TakeDamage(damageToEnemy);
-                return;
-            }
+            if (smallEnemy != null) { smallEnemy.TakeDamage(damageToEnemy); return; }
 
-            // 普通敌人（enemy）
+            // 近战巡逻兵
             enemy normalEnemy = hitObject.GetComponent<enemy>();
-            if (normalEnemy != null)
-            {
-                normalEnemy.TakeDamage(damageToEnemy);
-                return;
-            }
+            if (normalEnemy != null) { normalEnemy.TakeDamage(damageToEnemy); return; }
 
-            // Boss
-            boss1ai boss = hitObject.GetComponent<boss1ai>();
-            if (boss != null)
-            {
-                boss.TakeDamage(damageToEnemy);
-            }
+            // 远程敌人
+            RangedEnemy ranged = hitObject.GetComponent<RangedEnemy>();
+            if (ranged != null) { ranged.TakeDamage(damageToEnemy); return; }
+
+            // Boss1
+            boss1ai boss1 = hitObject.GetComponent<boss1ai>();
+            if (boss1 != null) { boss1.TakeDamage(damageToEnemy); return; }
+
+            // Boss2
             boss2ai boss2 = hitObject.GetComponent<boss2ai>();
-            if (boss2 != null)
-            {
-                boss2.TakeDamage(damageToEnemy);
-                return;
-            }
+            if (boss2 != null) { boss2.TakeDamage(damageToEnemy); }
         }
     }
 
