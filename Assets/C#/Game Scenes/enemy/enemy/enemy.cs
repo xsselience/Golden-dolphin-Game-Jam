@@ -123,7 +123,7 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
         float dist = dirToPlayer.magnitude;
 
         // 面朝方向（右 = 正 X）
-        float facingSign = transform.localScale.x > 0 ? 1f : -1f;
+        float facingSign = transform.localScale.x > 0 ? -1f : 1f;
         Vector2 facingDir = new Vector2(facingSign, 0f);
 
         float angle = Vector2.Angle(facingDir, dirToPlayer);
