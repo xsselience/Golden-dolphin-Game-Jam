@@ -13,6 +13,7 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
     [SerializeField] private float chaseSpeed = 4f;
     [SerializeField] private float detectionRange = 4f;
     [SerializeField] private float detectionAngle = 45f;   // 半角（总视角 90°）
+    private float chaseLockTimer;   // 追击最小持续时间
 
     [Header("攻击组件")]
     [SerializeField] private float attackRange = 1.5f;
@@ -61,6 +62,12 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
             attackTimer -= Time.deltaTime;
 
         float distanceToPlayer = DetectPlayer();
+
+        if (chaseLockTimer > 0 && currentState == State.Chase)
+        {
+            chaseLockTimer -= Time.deltaTime;
+        }
+
         switch (currentState)
         {
             case State.Patrol:
@@ -71,15 +78,16 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
 
             case State.Chase:
                 Chase();
-                if (distanceToPlayer > detectionRange || player == null)
+                // 锁定时间结束 + 玩家脱锁 → 回巡逻
+                if (chaseLockTimer <= 0 && (distanceToPlayer > detectionRange || player == null))
                     SwitchState(State.Patrol);
-                else if (distanceToPlayer <= attackRange)
+                else if (distanceToPlayer <= attackRange && player != null)
                     SwitchState(State.Attack);
                 break;
 
             case State.Attack:
                 Attack();
-                if (distanceToPlayer > attackRange || player == null)
+                if (chaseLockTimer <= 0 && (distanceToPlayer > attackRange || player == null))
                     SwitchState(State.Chase);
                 break;
         }
@@ -110,7 +118,6 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
 
     float DetectPlayer()
     {
-        // 先圆形粗筛
         Collider2D hit = Physics2D.OverlapCircle(transform.position, detectionRange, playerLayer);
         if (hit == null)
         {
@@ -118,12 +125,10 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
             return Mathf.Infinity;
         }
 
-        // 弧形判定
         Vector2 dirToPlayer = hit.transform.position - transform.position;
         float dist = dirToPlayer.magnitude;
 
-        // 面朝方向（右 = 正 X）
-        float facingSign = transform.localScale.x > 0 ? -1f : 1f;
+        float facingSign = transform.localScale.x > 0 ? 1f : -1f;
         Vector2 facingDir = new Vector2(facingSign, 0f);
 
         float angle = Vector2.Angle(facingDir, dirToPlayer);
@@ -203,6 +208,10 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
 
     void SwitchState(State newState)
     {
+        if (newState == State.Chase && currentState != State.Chase)
+        {
+            chaseLockTimer = 0.5f;   // 进入追击后至少维持 0.5 秒
+        }
         currentState = newState;
     }
 

@@ -10,11 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 133940395254886717}
   - component: {fileID: 7784180772985756733}
-  - component: {fileID: 7992125124660680781}
   - component: {fileID: 3763836328277978044}
   - component: {fileID: 5235750834681523020}
   - component: {fileID: 3701227785467092755}
-  - component: {fileID: 82275239457308779}
+  - component: {fileID: -2500229072431978862}
   m_Layer: 9
   m_Name: Enemy
   m_TagString: Untagged
@@ -90,54 +89,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!60 &7992125124660680781
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 289080290023075926}
-  m_Enabled: 0
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 3.4133334, y: 3.4133334}
-    newSize: {x: 1, y: 1}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: 0, y: 0.5773587}
-      - {x: -0.5, y: -0.28866667}
-      - {x: 0.06024933, y: -1.7911496}
-  m_UseDelaunayMesh: 0
 --- !u!50 &3763836328277978044
 Rigidbody2D:
   serializedVersion: 4
@@ -214,7 +165,7 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!58 &82275239457308779
+--- !u!58 &-2500229072431978862
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -246,9 +197,9 @@ CircleCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.07639393}
+  m_Offset: {x: 0.07108331, y: 0.020309389}
   serializedVersion: 2
-  m_Radius: 1.5899007
+  m_Radius: 1.4020255
 --- !u!1 &1603940457380458556
 GameObject:
   m_ObjectHideFlags: 0
