@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 /// 自动炮塔单脚本
 /// 1. 扇形弧形视野检测（距离、角度可在面板调节）
 /// 2. 预留开火逻辑标记位置，未实现发射子弹
-/// 3. 用InteractHintTrigger函数的Trigger圈作为F键交互范围，目前按F后直接销毁物体模拟自爆
+/// 3. 改用距离检测代替Trigger碰撞，按C黑入销毁
 public class AutoTurret : MonoBehaviour
 {
     [Header("扇形视野检测参数")]
@@ -15,7 +15,6 @@ public class AutoTurret : MonoBehaviour
     public float sightAngle = 60f;
     [Tooltip("玩家所在层级，只检测Player层")]
     public LayerMask playerLayer;
-
     [Header("子弹发射配置")]
     [Tooltip("方形子弹预制体")]
     public GameObject bulletPrefab;
@@ -24,11 +23,11 @@ public class AutoTurret : MonoBehaviour
     [Tooltip("两次发射冷却间隔")]
     public float fireCooldown = 0.6f;
     private float fireTimer;
-
     [Header("交互自爆设置")]
     [Tooltip("黑入成功后销毁物体的延迟时间")]
     public float destroyDelay = 0.8f;
-
+    [Tooltip("玩家交互范围半径")]
+    public float interactRadius = 2f;
     [Header("可视化设置")]
     [Tooltip("是否显示视野范围（在游戏场景中）")]
     public bool showVisionRange = true;
@@ -37,13 +36,16 @@ public class AutoTurret : MonoBehaviour
     [Tooltip("交互范围颜色")]
     public Color interactColor = Color.yellow;
 
+    // 新增UI提示
+    private Text promptText;
+    private readonly string hackTip = "[C] 黑入炮塔";
+
     // 缓存玩家物体
     private Transform playerTrans;
     // 标记炮塔是否已经被黑入自爆
     private bool isHacked = false;
-    // 标记玩家是否处于交互触发圈内
+    // 标记玩家是否处于交互范围内
     private bool playerInInteractRange = false;
-
     // 可视化组件
     private LineRenderer visionLineRenderer;
     private LineRenderer interactLineRenderer;
@@ -57,6 +59,17 @@ public class AutoTurret : MonoBehaviour
         else
             Debug.LogWarning("未找到Tag为'Player'的游戏对象！");
 
+        // 查找提示UI
+        if (p != null)
+        {
+            Transform textTrans = p.transform.Find("Canvas/PromptText");
+            if (textTrans != null)
+            {
+                promptText = textTrans.GetComponent<Text>();
+                promptText.enabled = false;
+            }
+        }
+
         // 创建可视化线条
         SetupVisionLines();
     }
@@ -64,7 +77,11 @@ public class AutoTurret : MonoBehaviour
     void Update()
     {
         // 已经黑入，停止所有逻辑
-        if (isHacked) return;
+        if (isHacked)
+        {
+            if (promptText != null) promptText.enabled = false;
+            return;
+        }
 
         // 冷却倒计时
         if (fireTimer > 0)
@@ -78,8 +95,14 @@ public class AutoTurret : MonoBehaviour
             fireTimer = fireCooldown;
         }
 
-        // 2. 玩家在交互圈内、按下F键，执行自爆
-        if (playerInInteractRange && Input.GetKeyDown(KeyCode.F))
+        // 【替换】每帧距离检测判断玩家是否在交互圈内，不再用Trigger
+        CheckInteractRangeByDistance();
+
+        // 控制提示文字显示隐藏
+        UpdatePromptText();
+
+        // 2. 玩家在交互圈内、按下C键，执行黑入自爆
+        if (playerInInteractRange && Input.GetKeyDown(KeyCode.C))
         {
             HackAndDestroy();
         }
@@ -91,6 +114,34 @@ public class AutoTurret : MonoBehaviour
         }
     }
 
+    // 新增：距离检测替代Trigger碰撞
+    void CheckInteractRangeByDistance()
+    {
+        if (playerTrans == null)
+        {
+            GameObject p = GameObject.FindWithTag("Player");
+            if (p != null) playerTrans = p.transform;
+            return;
+        }
+        float dis = Vector2.Distance(transform.position, playerTrans.position);
+        playerInInteractRange = dis <= interactRadius;
+    }
+
+    // 新增：控制提示文字
+    void UpdatePromptText()
+    {
+        if (promptText == null) return;
+        if (playerInInteractRange)
+        {
+            promptText.text = hackTip;
+            promptText.enabled = true;
+        }
+        else
+        {
+            promptText.enabled = false;
+        }
+    }
+
     /// 设置可视化线条
     void SetupVisionLines()
     {
@@ -99,11 +150,9 @@ public class AutoTurret : MonoBehaviour
         visionObj.transform.SetParent(transform);
         visionObj.transform.localPosition = Vector3.zero;
         visionObj.transform.localRotation = Quaternion.identity;
-
         visionLineRenderer = visionObj.AddComponent<LineRenderer>();
         visionLineRenderer.startWidth = 0.05f;
         visionLineRenderer.endWidth = 0.05f;
-        // 使用更可靠的材质
         visionLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
         visionLineRenderer.startColor = visionColor;
         visionLineRenderer.endColor = visionColor;
@@ -115,7 +164,6 @@ public class AutoTurret : MonoBehaviour
         interactObj.transform.SetParent(transform);
         interactObj.transform.localPosition = Vector3.zero;
         interactObj.transform.localRotation = Quaternion.identity;
-
         interactLineRenderer = interactObj.AddComponent<LineRenderer>();
         interactLineRenderer.startWidth = 0.05f;
         interactLineRenderer.endWidth = 0.05f;
@@ -130,15 +178,11 @@ public class AutoTurret : MonoBehaviour
     void UpdateVisionLines()
     {
         if (visionLineRenderer == null || interactLineRenderer == null) return;
-
         Vector3 pos = transform.position;
         Vector3 forwardDir = transform.right;
-
         // 更新扇形视野
         int segments = 30;
         List<Vector3> points = new List<Vector3>();
-
-        // 从左边开始绘制
         for (int i = 0; i <= segments; i++)
         {
             float t = (float)i / segments;
@@ -147,24 +191,19 @@ public class AutoTurret : MonoBehaviour
             Vector3 point = pos + dir * sightDistance;
             points.Add(point);
         }
-
         visionLineRenderer.positionCount = points.Count;
         visionLineRenderer.SetPositions(points.ToArray());
 
-        // 更新交互范围（圆形）
-        CircleCollider2D col = GetComponent<CircleCollider2D>();
-        float radius = col != null ? col.radius : 2f;
-
+        // 更新交互范围圆形（使用面板interactRadius）
+        float radius = interactRadius;
         int circleSegments = 36;
         List<Vector3> circlePoints = new List<Vector3>();
-
         for (int i = 0; i <= circleSegments; i++)
         {
             float angle = (float)i / circleSegments * 360f * Mathf.Deg2Rad;
             Vector3 point = pos + new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, 0);
             circlePoints.Add(point);
         }
-
         interactLineRenderer.positionCount = circlePoints.Count;
         interactLineRenderer.SetPositions(circlePoints.ToArray());
     }
@@ -174,25 +213,17 @@ public class AutoTurret : MonoBehaviour
     {
         if (playerTrans == null)
         {
-            // 每帧重新尝试查找玩家（防止玩家在运行时生成）
             GameObject p = GameObject.FindWithTag("Player");
             if (p != null)
                 playerTrans = p.transform;
             else
                 return false;
         }
-
-        // 1. 计算炮塔指向玩家的方向向量
         Vector2 dirToPlayer = playerTrans.position - transform.position;
         float distanceToPlayer = dirToPlayer.magnitude;
-
-        // 2. 距离超过设定视野，直接返回
         if (distanceToPlayer > sightDistance)
             return false;
-
-        // 3. 计算玩家与炮塔正前方的夹角
         float angleBetween = Vector2.Angle(transform.right, dirToPlayer);
-        // 夹角小于设定扇形半角，代表玩家在视野内
         if (angleBetween < sightAngle / 2)
         {
             return true;
@@ -209,23 +240,25 @@ public class AutoTurret : MonoBehaviour
             return;
         }
         if (playerTrans == null) return;
-
-        // 创建子弹
         GameObject bullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
 
-        // 获取BulletSquare组件并赋值
+        Collider2D turretCol = GetComponent<Collider2D>();
+        Collider2D bulletCol = bullet.GetComponent<Collider2D>();
+        if (turretCol != null && bulletCol != null)
+        {
+            Physics2D.IgnoreCollision(turretCol, bulletCol);
+        }
+
         BulletSquare b = bullet.GetComponent<BulletSquare>();
         if (b != null)
         {
-            // 直接给公有字段赋值（虽然标记了HideInInspector，但仍然可以赋值）
             b.bulletSpeed = bulletSpeed;
             b.targetDir = (playerTrans.position - transform.position).normalized;
             Debug.Log($"子弹创建成功，速度: {b.bulletSpeed}, 方向: {b.targetDir}");
         }
         else
         {
-            Debug.LogError("子弹预制体上没有BulletSquare组件！请检查预制体。");
-            // 如果没有BulletSquare，使用SimpleBullet作为备选
+          
             SimpleBullet simpleBullet = bullet.AddComponent<SimpleBullet>();
             simpleBullet.targetDir = (playerTrans.position - transform.position).normalized;
             simpleBullet.bulletSpeed = bulletSpeed;
@@ -236,45 +269,32 @@ public class AutoTurret : MonoBehaviour
     void HackAndDestroy()
     {
         isHacked = true;
-        // 隐藏可视化线条
+        if (promptText != null) promptText.enabled = false;
         if (visionLineRenderer != null) visionLineRenderer.enabled = false;
         if (interactLineRenderer != null) interactLineRenderer.enabled = false;
         Invoke(nameof(SelfDestroy), destroyDelay);
     }
 
-    /// 销毁炮塔物体
     void SelfDestroy()
     {
         Destroy(gameObject);
     }
 
-    // 由InteractHintTrigger的碰撞触发调用，玩家走进交互圈
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInInteractRange = true;
-            Debug.Log("玩家进入交互范围");
-        }
-    }
+    // ============ 已完全删除原来 OnTriggerEnter2D / OnTriggerExit2D，不再使用碰撞器触发 ============
 
-    // 玩家离开交互圈，取消F键响应
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInInteractRange = false;
-            Debug.Log("玩家离开交互范围");
-        }
-    }
-
-    // 销毁时清理子对象
     void OnDestroy()
     {
         if (visionLineRenderer != null && visionLineRenderer.gameObject != null)
             Destroy(visionLineRenderer.gameObject);
         if (interactLineRenderer != null && interactLineRenderer.gameObject != null)
             Destroy(interactLineRenderer.gameObject);
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        // 场景视图绘制交互范围圆形
+        Gizmos.color = interactColor;
+        Gizmos.DrawWireSphere(transform.position, interactRadius);
     }
 }
 
@@ -283,12 +303,9 @@ public class SimpleBullet : MonoBehaviour
 {
     public Vector2 targetDir;
     public float bulletSpeed = 8f;
-
     void Start()
     {
-        // 2秒后自动销毁
         Destroy(gameObject, 2f);
-        // 添加Rigidbody2D让子弹移动
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb == null)
             rb = gameObject.AddComponent<Rigidbody2D>();
