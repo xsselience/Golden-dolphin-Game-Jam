@@ -88,9 +88,9 @@ public class FlyingSpawner : MonoBehaviour
 
         // 朝向
         if (targetX > transform.position.x)
-            transform.localScale = new Vector3(1, 1, 1);
-        else if (targetX < transform.position.x)
             transform.localScale = new Vector3(-1, 1, 1);
+        else if (targetX < transform.position.x)
+            transform.localScale = new Vector3(1, 1, 1);
 
         // 到达巡逻点
         if (Mathf.Abs(transform.position.x - targetX) < 0.1f)
@@ -114,7 +114,7 @@ public class FlyingSpawner : MonoBehaviour
 
         Vector2 dirToPlayer = hit.transform.position - transform.position;
         float dist = dirToPlayer.magnitude;
-        float facingSign = transform.localScale.x > 0 ? 1f : -1f;
+        float facingSign = transform.localScale.x > 0 ? -1f : 1f;
         Vector2 facingDir = new Vector2(facingSign, 0f);
         float angle = Vector2.Angle(facingDir, dirToPlayer);
 
@@ -216,7 +216,7 @@ public class FlyingSpawner : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        float facingSign = transform.localScale.x > 0 ? 1f : -1f;
+        float facingSign = transform.localScale.x > 0 ? -1f : 1f;
         float startAngle = (facingSign > 0 ? 0f : 180f) - detectionHalfAngle;
         float endAngle = startAngle + detectionHalfAngle * 2f;
 

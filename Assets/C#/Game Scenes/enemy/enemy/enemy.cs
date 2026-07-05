@@ -183,6 +183,16 @@ public class enemy : MonoBehaviour//暂时我还没搞懂然后写注释但是�
         Vector2 newPos = Vector2.MoveTowards(rb.position, target, chaseSpeed * Time.deltaTime);
         rb.MovePosition(newPos);
         FlipToward(player.position);
+
+        // 被边界卡住 → 转向远离玩家
+        if (Mathf.Abs(targetX - rb.position.x) < 0.05f &&
+            (player.position.x < patrolMin.x || player.position.x > patrolMax.x))
+        {
+            if (player.position.x > transform.position.x)
+                transform.localScale = new Vector3(-1, 1, 1);
+            else
+                transform.localScale = new Vector3(1, 1, 1);
+        }
     }
 
     // ==================== 攻击 ====================

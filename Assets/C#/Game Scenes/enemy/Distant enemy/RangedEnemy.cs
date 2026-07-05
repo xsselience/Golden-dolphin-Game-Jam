@@ -22,6 +22,10 @@ public class RangedEnemy : MonoBehaviour
     [SerializeField] private float bulletSpeed = 8f;
     [SerializeField] private int bulletDamage = 10;
 
+    [Header("动画使用组件")]
+    public bool Attacking;
+    private Animator anim;
+
     [Header("引用组件")]
     [SerializeField] private LayerMask playerLayer;
 
@@ -29,7 +33,6 @@ public class RangedEnemy : MonoBehaviour
     [SerializeField] private int health = 8;
 
     private Rigidbody2D rb;
-    private Animator anim;
 
     private enum State { Patrol, Chase, Attack }
     private State currentState;
@@ -55,6 +58,7 @@ public class RangedEnemy : MonoBehaviour
 
     void Update()
     {
+        SwitchAnim();
         if (attackTimer > 0)
             attackTimer -= Time.deltaTime;
 
@@ -71,17 +75,27 @@ public class RangedEnemy : MonoBehaviour
             case State.Chase:
                 Chase();
                 if (distanceToPlayer > detectionRange || player == null)
+                {
+                    Attacking = false;
                     SwitchState(State.Patrol);
-                else if (distanceToPlayer <= attackRange)
-                    SwitchState(State.Attack);
+                }
                 break;
 
             case State.Attack:
                 Attack();
                 if (distanceToPlayer > attackRange || player == null)
+                {
+                    Attacking = false;
                     SwitchState(State.Chase);
+                }
                 break;
         }
+    }
+
+    private void SwitchAnim()
+    {
+        if (anim != null)
+            anim.SetBool("EnemyAttacking", Attacking);
     }
 
     // ==================== 巡逻区域 ====================
@@ -174,23 +188,24 @@ public class RangedEnemy : MonoBehaviour
 
     void Attack()
     {
-        if (player == null) return;
+        if (player == null)
+        {
+            Attacking = false;
+            return;
+        }
 
         FlipToward(player.position);
+        Attacking = true;
 
         if (attackTimer <= 0)
         {
             attackTimer = attackCooldown;
-            FireBullet();
         }
     }
 
-    void FireBullet()
+    public void OnFireBullet()
     {
-        if (bulletPrefab == null)
-        {
-            return;
-        }
+        if (bulletPrefab == null || player == null) return;
 
         Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
         GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
@@ -200,9 +215,7 @@ public class RangedEnemy : MonoBehaviour
         if (enemyCol != null && bulletCol != null)
             Physics2D.IgnoreCollision(bulletCol, enemyCol);
 
-
         Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
-
         if (bulletRb != null)
         {
             Vector2 dir = (player.position - spawnPos).normalized;
@@ -210,10 +223,8 @@ public class RangedEnemy : MonoBehaviour
         }
 
         EnemyBullet eb = bullet.GetComponent<EnemyBullet>();
-        if (eb != null)
-            eb.damage = bulletDamage;
+        if (eb != null) eb.damage = bulletDamage;
     }
-
     // ==================== 辅助 ====================
 
     void SwitchState(State newState)
