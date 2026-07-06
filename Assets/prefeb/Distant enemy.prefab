@@ -31,6 +31,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 168410148553214039}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1110992593259706837
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3102148757475713776}
+  - component: {fileID: 9037614832712838679}
+  m_Layer: 0
+  m_Name: weapon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3102148757475713776
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110992593259706837}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 168410148553214039}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9037614832712838679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1110992593259706837}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3888f9292ee79b4dadbde3f4afbee85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 10
+  playerLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  wallLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &3669998948967857563
 GameObject:
   m_ObjectHideFlags: 0
@@ -66,6 +117,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7687792144114896373}
+  - {fileID: 3102148757475713776}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &584965819391112749
@@ -212,12 +264,14 @@ MonoBehaviour:
   chaseSpeed: 18
   detectionRange: 12
   detectionAngle: 29.5
-  attackRange: 8
-  attackCooldown: 2
-  bulletPrefab: {fileID: 5336662030200488541, guid: a81d6c9cc7c15004d81b07793e63a9cf, type: 3}
+  attackRange: 5
+  attackCooldown: 20
+  bulletPrefab: {fileID: 396584733270929851, guid: 1f731cea873f329469b0edc974eadd25, type: 3}
   firePoint: {fileID: 7687792144114896373}
-  bulletSpeed: 30
-  bulletDamage: 12
+  bulletSpeed: 9
+  bulletDamage: 5
+  attackLockDuration: 4
+  Attacking: 0
   playerLayer:
     serializedVersion: 2
     m_Bits: 64

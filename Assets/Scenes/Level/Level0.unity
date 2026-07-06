@@ -2029,7 +2029,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c6a9cb8c2a91ad4f919445347c45f7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bgmClip: {fileID: 8300000, guid: 11c30e103c3caab4994e539cb9ba1c9d, type: 3}
+  bgmClip: {fileID: 8300000, guid: 9307c768346d8b04494d5116f08087d0, type: 3}
   maxVolume: 0.6
   fadeTime: 0.8
 --- !u!4 &638610652
@@ -3882,6 +3882,10 @@ PrefabInstance:
       propertyPath: m_Offset.y
       value: 0.17330363
       objectReference: {fileID: 0}
+    - target: {fileID: -2500229072431978862, guid: 39bff228c21bda042897e420ab801dff, type: 3}
+      propertyPath: m_IsTrigger
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 82275239457308779, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_Radius
       value: 1.5153587
@@ -5322,6 +5326,8 @@ MonoBehaviour:
   textSpeed: 0.05
   textStartDelay: 0.1
   isEndingScene: 0
+  endingMusic1: {fileID: 0}
+  endingMusic2: {fileID: 0}
 --- !u!95 &2059975026
 Animator:
   serializedVersion: 5

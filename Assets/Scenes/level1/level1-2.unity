@@ -2245,11 +2245,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 133940395254886717, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 16.8
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 133940395254886717, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -51.85
+      value: -52.1
       objectReference: {fileID: 0}
     - target: {fileID: 133940395254886717, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4542,6 +4542,8 @@ MonoBehaviour:
   textSpeed: 0.05
   textStartDelay: 0.5
   isEndingScene: 0
+  endingMusic1: {fileID: 0}
+  endingMusic2: {fileID: 0}
 --- !u!95 &1742272321
 Animator:
   serializedVersion: 5
@@ -6085,6 +6087,10 @@ PrefabInstance:
     - target: {fileID: 1155110227548239506, guid: 45750d0bc53e4864fbc2229c24a015f8, type: 3}
       propertyPath: m_Constraints
       value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 2029195982206340262, guid: 45750d0bc53e4864fbc2229c24a015f8, type: 3}
+      propertyPath: Attacking
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2029195982206340262, guid: 45750d0bc53e4864fbc2229c24a015f8, type: 3}
       propertyPath: firePoint
