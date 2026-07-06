@@ -290,7 +290,7 @@ public class player : MonoBehaviour
 
     public void IgnoreLayer()//穿越平台用代码
     {
-        if (Input.GetKeyDown(KeyCode.S))
+        if (Input.GetKeyDown(KeyCode.S)|| Input.GetButtonDown("Jump"))
         {
             Physics2D.IgnoreLayerCollision(playerLayer, platformLayerIndex, true);
             StartCoroutine(RestoreAfterTimer());//启用携程

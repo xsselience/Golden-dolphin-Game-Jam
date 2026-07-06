@@ -2245,11 +2245,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 133940395254886717, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 17
+      value: 15.23
       objectReference: {fileID: 0}
     - target: {fileID: 133940395254886717, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -52.1
+      value: -52.44
       objectReference: {fileID: 0}
     - target: {fileID: 133940395254886717, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2289,7 +2289,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5235750834681523020, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: chaseSpeed
-      value: 26
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 5235750834681523020, guid: 39bff228c21bda042897e420ab801dff, type: 3}
       propertyPath: detectionAngle

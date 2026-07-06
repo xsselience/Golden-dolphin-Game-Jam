@@ -132,13 +132,13 @@ MonoBehaviour:
   waypoints:
   - {fileID: 0}
   - {fileID: 0}
-  patrolSpeed: 12
+  patrolSpeed: 7
   waitAtWaypoint: 0
-  chaseSpeed: 18
+  chaseSpeed: 10
   detectionRange: 20
   detectionAngle: 45
   attackRange: 2.4
-  attackCooldown: 1.5
+  attackCooldown: 4
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
