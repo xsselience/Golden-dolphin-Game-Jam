@@ -1466,7 +1466,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultBGM: {fileID: 8300000, guid: 6326818374f5f9e4288c1788c48e6680, type: 3}
   zoneBGM: {fileID: 8300000, guid: 0cd3d29e23644b7459ec1d3d5d5a517d, type: 3}
-  volume: 0.6
+  volume: 0.38
 --- !u!4 &756640028
 Transform:
   m_ObjectHideFlags: 0

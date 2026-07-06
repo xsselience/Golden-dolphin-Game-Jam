@@ -181,8 +181,8 @@ public class boss2ai : MonoBehaviour
             if (rightLamp != null) rightLamp.color = Color.red;
 
             // 失效一个受击点
-            if (deactivateInPhase3 >= 0 && deactivateInPhase3 < 3 && hitPoints[deactivateInPhase3] != null)
-                hitPoints[deactivateInPhase3].SetActive(false);
+            if (deactivateInPhase2 >= 0 && deactivateInPhase2 < 3 && hitPoints[deactivateInPhase2] != null)
+                hitPoints[deactivateInPhase2].Dim();
 
             Debug.Log("Boss2 进入阶段3！");
         }
@@ -193,8 +193,8 @@ public class boss2ai : MonoBehaviour
             if (leftLamp != null) leftLamp.color = Color.red;
 
             // 失效一个受击点
-            if (deactivateInPhase2 >= 0 && deactivateInPhase2 < 3 && hitPoints[deactivateInPhase2] != null)
-                hitPoints[deactivateInPhase2].SetActive(false);
+            if (deactivateInPhase3 >= 0 && deactivateInPhase3 < 3 && hitPoints[deactivateInPhase3] != null)
+                hitPoints[deactivateInPhase3].Dim();
 
             Debug.Log("Boss2 进入阶段2！");
         }

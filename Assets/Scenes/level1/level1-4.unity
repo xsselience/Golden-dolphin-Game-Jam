@@ -1898,7 +1898,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bgmClip: {fileID: 8300000, guid: 6326818374f5f9e4288c1788c48e6680, type: 3}
-  maxVolume: 0.6
+  maxVolume: 0.357
   fadeTime: 0.8
 --- !u!4 &725805779
 Transform:
