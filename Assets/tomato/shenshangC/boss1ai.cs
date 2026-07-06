@@ -114,7 +114,9 @@ public class boss1ai : MonoBehaviour
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
         if (animator == null)
             animator = GetComponent<Animator>();
-        spawnPoint = GetComponent<Transform>();
+        // spawnPoint 如果未在 Inspector 中设置才使用自身 Transform 作为后备
+        if (spawnPoint == null)
+            spawnPoint = GetComponent<Transform>();
         rb = GetComponent<Rigidbody2D>();
     }
 

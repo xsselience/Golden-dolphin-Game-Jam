@@ -825,7 +825,7 @@ PlayerSettings:
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: DonotButton
-  metroPackageVersion: 
+  metroPackageVersion: 1.0.0.0
   metroCertificatePath: 
   metroCertificatePassword: 
   metroCertificateSubject: 
@@ -833,7 +833,7 @@ PlayerSettings:
   metroCertificateNotAfter: 0000000000000000
   metroApplicationDescription: DonotButton
   wsaImages: {}
-  metroTileShortName: 
+  metroTileShortName: "\u300AR.r\u300B"
   metroTileShowName: 0
   metroMediumTileShowName: 0
   metroLargeTileShowName: 0

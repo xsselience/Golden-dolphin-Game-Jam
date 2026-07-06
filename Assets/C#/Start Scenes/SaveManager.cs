@@ -57,11 +57,18 @@ public class SaveManager : MonoBehaviour
             SaveData d = Load(i);
             if (d != null && !d.isEmpty)
             {
-                DateTime t = DateTime.Parse(d.saveTime);
-                if (t > latestTime)
+                try
                 {
-                    latestTime = t;
-                    latest = i;
+                    DateTime t = DateTime.Parse(d.saveTime);
+                    if (t > latestTime)
+                    {
+                        latestTime = t;
+                        latest = i;
+                    }
+                }
+                catch
+                {
+                    // 存档时间格式异常，跳过
                 }
             }
         }

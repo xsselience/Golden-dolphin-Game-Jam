@@ -2810,7 +2810,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a8b3dd4a27ebe74cb6291b1519fccdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectBox: {x: 3, y: 2}
+  detectBox: {x: 4.5, y: 2}
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -5397,6 +5397,7 @@ MonoBehaviour:
   lines:
   - "\u201C\u7F57\u5FB7\u68EE\u201D|\u597D\u591A\u76D1\u63A7\uFF0C\u6211\u4EEC\u8D70\u7535\u68AF\u5427\uFF1F\u6211\u80FD\u641E\u5B9A\u6743\u9650(\u2310\u25A0_\u25A0)"
   triggerOnce: 0
+  dialogueId: 
   playerLayer:
     serializedVersion: 2
     m_Bits: 64

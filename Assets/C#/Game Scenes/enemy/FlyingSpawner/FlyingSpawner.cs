@@ -88,9 +88,9 @@ public class FlyingSpawner : MonoBehaviour
 
         // 朝向
         if (targetX > transform.position.x)
-            transform.localScale = new Vector3(-1, 1, 1);
-        else if (targetX < transform.position.x)
             transform.localScale = new Vector3(1, 1, 1);
+        else if (targetX < transform.position.x)
+            transform.localScale = new Vector3(-1, 1, 1);
 
         // 到达巡逻点
         if (Mathf.Abs(transform.position.x - targetX) < 0.1f)

@@ -29,15 +29,14 @@ public class DialogueUI : MonoBehaviour
     IEnumerator DialogueRoutine(string[] lines)
     {
         isPlaying = true;
-        dialoguePanel.SetActive(true);
-
-        isPlaying = true;
         Time.timeScale = 0f;                      // 暂停游戏
         dialoguePanel.SetActive(true);
 
 
         foreach (string line in lines)
         {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
             string[] parts = line.Split('|');
             string speaker = parts.Length > 0 ? parts[0] : "";
             string content = parts.Length > 1 ? parts[1] : line;

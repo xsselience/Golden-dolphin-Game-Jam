@@ -13,12 +13,16 @@ public class BulletSquare : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        if (rb == null)
+        {
+            rb = gameObject.AddComponent<Rigidbody2D>();
+        }
         // 子弹关闭重力，匀速直线飞行
         rb.gravityScale = 0;
         lifeTimer = maxLifeTime;
 
         // 关键修复：给子弹设置移动速度
-        if (rb != null && targetDir != Vector2.zero)
+        if (targetDir != Vector2.zero)
         {
             rb.velocity = targetDir * bulletSpeed;
         }
@@ -41,11 +45,11 @@ public class BulletSquare : MonoBehaviour
     // 正确2D碰撞回调函数，碰到任意物体销毁子弹（碰撞后即判定为命中）
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 可选：添加命中逻辑（比如检测碰撞目标是玩家、播放特效等）
         if (collision.gameObject.CompareTag("Player"))
         {
             Debug.Log("子弹命中玩家！");
-            // 这里可以添加玩家掉血、播放命中特效等逻辑
+            player p = collision.gameObject.GetComponent<player>();
+            if (p != null) p.TakeDamage(10);
         }
 
         Destroy(gameObject);

@@ -3,31 +3,32 @@ using UnityEngine.UI;
 
 public class ElevatorHack : MonoBehaviour
 {
-    [Header("Íæ¼Ò¼ì²â·¶Î§")]
+    [Header("ï¿½ï¿½Ò¼ï¿½â·¶Î§")]
     public Vector2 detectBox = new Vector2(3, 2);
     public LayerMask playerLayer;
-    [Header("Í¬×ø±êµþ·ÅµÄ¿ªÃÅµçÌÝÍ¼")]
+    [Header("Í¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÅµÄ¿ï¿½ï¿½Åµï¿½ï¿½ï¿½Í¼")]
     public GameObject doorOpenObj;
-    [Header("µçÌÝ´«ËÍÄ¿±ê×ø±ê")]
+    [Header("ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public Vector2 teleportTargetPos;
 
     private SpriteRenderer closeDoorSprite;
     private Text promptText;
-    // Á½¶ÎÌáÊ¾ÎÄ×Ö
-    private readonly string hackTip = "[C] ºÚÈëµçÌÝ";
-    private readonly string useTip = "[F] Ê¹ÓÃµçÌÝ´«ËÍ";
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
+    private readonly string hackTip = "[C] ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½";
+    private readonly string useTip = "[F] Ê¹ï¿½Ãµï¿½ï¿½Ý´ï¿½ï¿½ï¿½";
 
     private bool playerNear = false;
-    private bool isHacked = false; // ÊÇ·ñÒÑ¾­ºÚÈë¿ªÃÅ
+    private bool isHacked = false; // ï¿½Ç·ï¿½ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½ë¿ªï¿½ï¿½
 
     void Start()
     {
-        // »ñÈ¡×ÔÉí¹ØÃÅäÖÈ¾×é¼þ
+        // ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¾ï¿½ï¿½ï¿½
         closeDoorSprite = GetComponent<SpriteRenderer>();
-        closeDoorSprite.color = new Color(closeDoorSprite.color.r, closeDoorSprite.color.g, closeDoorSprite.color.b, 1f);
+        if (closeDoorSprite != null)
+            closeDoorSprite.color = new Color(closeDoorSprite.color.r, closeDoorSprite.color.g, closeDoorSprite.color.b, 1f);
         if (doorOpenObj != null) doorOpenObj.SetActive(false);
 
-        // Æ¥ÅäÄãµÄ²ã¼¶ Player/Canvas/PromptText
+        // Æ¥ï¿½ï¿½ï¿½ï¿½Ä²ã¼¶ Player/Canvas/PromptText
         GameObject player = GameObject.FindWithTag("Player");
         if (player != null)
         {
@@ -47,10 +48,10 @@ public class ElevatorHack : MonoBehaviour
         playerNear = hit != null;
         GameObject playerObj = GameObject.FindWithTag("Player");
 
-        #region ÌáÊ¾ÎÄ×ÖÇÐ»»Âß¼­
+        #region ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ß¼ï¿½
         if (playerNear && !prevNear && promptText != null)
         {
-            // ÃÅÃ»¿ª£ºÏÔÊ¾ºÚÈëÌáÊ¾£»ÃÅÒÑ´ò¿ª£ºÏÔÊ¾´«ËÍÌáÊ¾
+            // ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ò¿ª£ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¾
             promptText.text = isHacked ? useTip : hackTip;
             promptText.enabled = true;
         }
@@ -58,20 +59,20 @@ public class ElevatorHack : MonoBehaviour
         {
             promptText.enabled = false;
         }
-        // Íæ¼ÒÕ¾ÔÚµçÌÝÉÏ£¬¶¯Ì¬Ë¢ÐÂÌáÊ¾ÎÄ×Ö£¨¿ªÃÅºó×Ô¶¯ÇÐ»»FÌáÊ¾£©
+        // ï¿½ï¿½ï¿½Õ¾ï¿½Úµï¿½ï¿½ï¿½ï¿½Ï£ï¿½ï¿½ï¿½Ì¬Ë¢ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½Ö£ï¿½ï¿½ï¿½ï¿½Åºï¿½ï¿½Ô¶ï¿½ï¿½Ð»ï¿½Fï¿½ï¿½Ê¾ï¿½ï¿½
         if (playerNear && promptText != null)
         {
             promptText.text = isHacked ? useTip : hackTip;
         }
         #endregion
 
-        #region °´¼üÂß¼­
-        // 1. Î´ºÚÈëÊ±£¬°´C¿ªÃÅ
+        #region ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
+        // 1. Î´ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½ï¿½
         if (playerNear && !isHacked && Input.GetKeyDown(KeyCode.C))
         {
             HackElevator();
         }
-        // 2. ÒÑ¾­¿ªÃÅºó£¬°´F´«ËÍÍæ¼Ò
+        // 2. ï¿½Ñ¾ï¿½ï¿½ï¿½ï¿½Åºó£¬°ï¿½Fï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (playerNear && isHacked && Input.GetKeyDown(KeyCode.F) && playerObj != null)
         {
             TeleportPlayer(playerObj);
@@ -79,11 +80,11 @@ public class ElevatorHack : MonoBehaviour
         #endregion
     }
 
-    // ºÚÈë¿ªÃÅÂß¼­£¨Ô­ÓÐÂß¼­²»±ä£©
+    // ï¿½ï¿½ï¿½ë¿ªï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½ä£©
     void HackElevator()
     {
         isHacked = true;
-        // ½öÍ¸Ã÷Òþ²Ø¹ØÃÅ£¬ÎïÌå±£Áô
+        // ï¿½ï¿½Í¸ï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½Å£ï¿½ï¿½ï¿½ï¿½å±£ï¿½ï¿½
         Color invisible = closeDoorSprite.color;
         invisible.a = 0;
         closeDoorSprite.color = invisible;
@@ -91,7 +92,7 @@ public class ElevatorHack : MonoBehaviour
             doorOpenObj.SetActive(true);
     }
 
-    // ´«ËÍÍæ¼Òµ½Ö¸¶¨×ø±ê
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òµï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     void TeleportPlayer(GameObject player)
     {
         player.transform.position = teleportTargetPos;
@@ -99,10 +100,10 @@ public class ElevatorHack : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // µçÌÝ½»»¥¼ì²â¿ò
+        // ï¿½ï¿½ï¿½Ý½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         Gizmos.color = Color.green;
         Gizmos.DrawWireCube(transform.position, detectBox);
-        // ´«ËÍÄ¿±êµã±ê¼Ç£¨ºìÉ«Ð¡Çò£©
+        // ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ï¿½É«Ð¡ï¿½ï¿½
         Gizmos.color = Color.red;
         Gizmos.DrawSphere(teleportTargetPos, 0.25f);
     }

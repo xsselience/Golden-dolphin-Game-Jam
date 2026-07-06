@@ -78,7 +78,7 @@ public class FloatingBot : MonoBehaviour
         Vector3 targetPos = target.position + (Vector3)followOffset;
         targetPos.z = transform.position.z;
 
-        basePosition = Vector3.Lerp(basePosition, targetPos, followSpeed * Time.deltaTime);
+        basePosition = Vector3.Lerp(basePosition, targetPos, followSpeed * Time.fixedDeltaTime);
 
         float floatOffset = Mathf.Sin(Time.time * floatSpeed * Mathf.PI * 2f) * floatHeight;
         transform.position = basePosition + new Vector3(0f, floatOffset, 0f);

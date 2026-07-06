@@ -2,11 +2,11 @@ using UnityEngine;
 
 public class ZoneBGM : MonoBehaviour
 {
-    [Header("ÇøÓò±³¾°ÒôÀÖ")]
+    [Header("ï¿½ï¿½ï¿½ò±³¾ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public AudioClip bgmClip;
-    [Header("ÒôÀÖ»ù´¡ÒôÁ¿ 0~1")]
+    [Header("ï¿½ï¿½ï¿½Ö»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 0~1")]
     [Range(0, 1)] public float maxVolume = 0.6f;
-    [Header("µ­Èëµ­³öÊ±³¤(Ãë)")]
+    [Header("ï¿½ï¿½ï¿½ëµ­ï¿½ï¿½Ê±ï¿½ï¿½(ï¿½ï¿½)")]
     public float fadeTime = 0.8f;
 
     private AudioSource audioSource;
@@ -15,10 +15,16 @@ public class ZoneBGM : MonoBehaviour
 
     void Start()
     {
-        // ×Ô¶¯Ìí¼ÓAudioSource
+        // ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½AudioSource
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
             audioSource = gameObject.AddComponent<AudioSource>();
+
+        if (bgmClip == null)
+        {
+            Debug.LogWarning($"ZoneBGM on {gameObject.name}: bgmClip æœªèµ‹å€¼ï¼Œä¸ä¼šæ’­æ”¾éŸ³ä¹");
+            return;
+        }
 
         audioSource.clip = bgmClip;
         audioSource.loop = true;
@@ -29,20 +35,20 @@ public class ZoneBGM : MonoBehaviour
 
     void Update()
     {
-        // Íæ¼ÒÔÚÇøÓòÄÚ ¡ú µ­Èë
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (playerInsideCount > 0)
         {
-            currentVolume = Mathf.MoveTowards(currentVolume, maxVolume, maxVolume / fadeTime * Time.deltaTime);
+            currentVolume = Mathf.MoveTowards(currentVolume, maxVolume, maxVolume / fadeTime * Time.unscaledDeltaTime);
         }
-        // Íæ¼Ò²»ÔÚÇøÓò ¡ú µ­³öµ½0
+        // ï¿½ï¿½Ò²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½0
         else
         {
-            currentVolume = Mathf.MoveTowards(currentVolume, 0f, maxVolume / fadeTime * Time.deltaTime);
+            currentVolume = Mathf.MoveTowards(currentVolume, 0f, maxVolume / fadeTime * Time.unscaledDeltaTime);
         }
         audioSource.volume = currentVolume;
     }
 
-    // Íæ¼Ò½øÈëÇøÓò
+    // ï¿½ï¿½Ò½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
@@ -51,7 +57,7 @@ public class ZoneBGM : MonoBehaviour
         }
     }
 
-    // Íæ¼ÒÀë¿ªÇøÓò
+    // ï¿½ï¿½ï¿½ï¿½ë¿ªï¿½ï¿½ï¿½ï¿½
     private void OnTriggerExit2D(Collider2D other)
     {
         if (other.CompareTag("Player"))

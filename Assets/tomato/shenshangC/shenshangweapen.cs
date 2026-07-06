@@ -66,18 +66,18 @@ public class shenshangweapen : MonoBehaviour
         }
         else if (currentHitStage == 3)
         {
-            // 第三段：重击 + 击退（关掉 stage 防重复触发）
+            // 第三段：重击 + 击退
             int dmg = CalcDamage(heavyDamage, ps);
-            if (dmg == 0) return;
 
-            if (ps != null)
+            if (dmg == 0 && ps != null)
+            {
+                // 完美格挡：无伤 + 无敌
+                ps.ActivateInvincibility();
+            }
+            else if (dmg > 0 && ps != null)
             {
                 ps.TakeDamage(dmg);
                 StartCoroutine(Knockback());
-            }
-            else if (dmg == 0 && ps != null)
-            {
-                ps.ActivateInvincibility();   // 完美格挡 → 无敌，不击退
             }
         }
     }

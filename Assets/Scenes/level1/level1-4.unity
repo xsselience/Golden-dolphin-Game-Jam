@@ -676,6 +676,7 @@ MonoBehaviour:
   - "\u201C\u7F57\u5FB7\u68EE\u201D|\u6211\u5728\uFF0C\u745E\u96EF\uFF08\u208C\u2579\u03C9\u2579\u208C\uFF09"
   - "\u745E\u96EF|\u2026\u2026\u6CA1\u4E8B\u3002"
   triggerOnce: 1
+  dialogueId: 
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -1173,7 +1174,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0

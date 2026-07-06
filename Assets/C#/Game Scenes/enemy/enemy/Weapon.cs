@@ -53,10 +53,8 @@ public class Weapon : MonoBehaviour
                     playerHealth.ActivateInvincibility();   // 完美格挡 → 无敌
                 }
             }
-            else
-            {
-                damageToPlayer = damageToPlayerMax;
-            }
+            // 如果找不到 player 组件，用最大伤害值作为本击伤害
+            // （不修改序列化字段，防止永久更改 Inspector 设置值）
             
         }
     }

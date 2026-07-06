@@ -166,9 +166,6 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
 
         FlipToward(target.position);
 
-        // 翻转朝向
-        FlipToward(target.position);
-
         // 到达巡逻点附近，开始等待，并切换到下一个巡逻点
         if (Vector2.Distance(transform.position, target.position) < 0.1f)
         {
@@ -189,9 +186,6 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         Vector2 newPos = Vector2.MoveTowards(rb.position, target, chaseSpeed * Time.deltaTime);
         moveTarget = newPos;
         hasMoveTarget = true;
-
-        FlipToward(Player.position);
-
 
         FlipToward(Player.position);
     }
@@ -308,7 +302,6 @@ public class bossenemy : MonoBehaviour//暂时我还没搞懂然后写注释但�
         moveTarget = newPos;
         hasMoveTarget = true;
 
-        FlipToward(bossTarget.position);
         FlipToward(bossTarget.position);
 
         if (Vector2.Distance(transform.position, bossTarget.position) < 1.5f)

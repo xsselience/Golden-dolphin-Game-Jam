@@ -335,14 +335,11 @@ public class player : MonoBehaviour
 
         if (Input.GetMouseButtonUp(1))
         {
-            if (Input.GetMouseButtonUp(1))
-            {
-                isBlocking = false;
-                perfectActive = false;
-                defensedowntrue = true;
-                // dfstrue 先不动，等放下动画播完再关
-                StartCoroutine(DefenseDownTimer());
-            }
+            isBlocking = false;
+            perfectActive = false;
+            defensedowntrue = true;
+            // dfstrue 先不动，等放下动画播完再关
+            StartCoroutine(DefenseDownTimer());
         }
     }
     IEnumerator DefenseDownTimer()
@@ -452,7 +449,7 @@ public class player : MonoBehaviour
         ZoneController[] zones = FindObjectsOfType<ZoneController>();
         foreach (ZoneController z in zones)
             z.SetForHack(true);
-        if (sr != null) sr.color = new Color(0f, 3f, 1f);
+        if (sr != null) sr.color = new Color(0f, 1f, 1f);
     }
 
     /// <summary>
@@ -679,7 +676,7 @@ public class player : MonoBehaviour
     void UpdateCyberUI()
     {
         if (cyberPowerText != null)
-            cyberPowerText.text = "算力: " + currentCyberPower + "/" + (maxCyberPower - hackCount);
+            cyberPowerText.text = "算力: " + currentCyberPower + "/" + maxCyberPower;
     }
 
     public void TryActivateCover(Cover cover)

@@ -65,9 +65,9 @@ public class PlayerHUD : MonoBehaviour
     {
         if (playerScript == null) return;
 
-        // 血量
+        // 血量（使用 100 作为初始最大值，可后续改为动态读取 maxHealth）
         if (healthFill != null)
-            healthFill.fillAmount = (float)playerScript.health / 100f;
+            healthFill.fillAmount = Mathf.Clamp01((float)playerScript.health / 100f);
         if (healthText != null)
             healthText.text = $"HP: {playerScript.health}";
 

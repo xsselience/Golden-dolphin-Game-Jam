@@ -37,17 +37,19 @@ public class GameManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // 场景重载后先重新找 deathPanel（旧引用已失效）
+        if (deathPanel == null)
+        {
+            GameObject dp = GameObject.Find("DeathPanel");
+            if (dp != null) deathPanel = dp;
+        }
+
         if (isRetrying)
         {
             isRetrying = false;
             GameObject img = GameObject.Find("Imagezzz");
             if (img != null) img.SetActive(false);
-        }
-        // 场景重载后重新找 deathPanel（旧引用已失效）
-        if (deathPanel == null)
-        {
-            GameObject dp = GameObject.Find("DeathPanel");
-            if (dp != null) deathPanel = dp;
+            if (deathPanel != null) deathPanel.SetActive(false);
         }
 
         StartCoroutine(SpawnPlayerDelayed(scene));
@@ -205,6 +207,7 @@ public class GameManager : MonoBehaviour
             currentPlayer.controlsDisabled = true;
         if (deathPanel != null)
             deathPanel.SetActive(true);
+        Time.timeScale = 0f;
     }
 
     public void Retry()
@@ -218,11 +221,14 @@ public class GameManager : MonoBehaviour
             currentPlayer = null;
         }
 
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void BackToMenu()
     {
+        Time.timeScale = 1f;
+
         if (deathPanel == null)
         {
             GameObject dp = GameObject.Find("DeathPanel");
