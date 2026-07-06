@@ -191,22 +191,32 @@ public class SceneGate : MonoBehaviour
 
     IEnumerator PlayEndingText()
     {
+        Debug.Log("[PlayEndingText] 协程启动");
+
         yield return new WaitForSecondsRealtime(textStartDelay);
+        Debug.Log("[PlayEndingText] 延迟结束");
 
         int cyberPower = currentPlayer != null ? currentPlayer.GetCyberPower() : 0;
         string[] lines = cyberPower > 0 ? endingLines2 : endingLines1;
+        Debug.Log($"[PlayEndingText] cyberPower={cyberPower}, lines数量={lines?.Length ?? 0}");
 
         if (endingTextPanel != null) endingTextPanel.SetActive(true);
+        Debug.Log($"[PlayEndingText] endingTextPanel={(endingTextPanel != null ? "有" : "null")}, endingText={(endingText != null ? "有" : "null")}");
+
         if (endingText == null) yield break;
 
         foreach (string line in lines)
         {
-            endingText.text = "";
-            foreach (char c in line)
+            Debug.Log($"[PlayEndingText] 开始打印一行, 长度={line.Length}");
+            for (int i = 0; i <= line.Length; i++)
             {
-                endingText.text += c;
+                endingText.text = line.Substring(0, i);
+                float start = Time.realtimeSinceStartup;
                 yield return new WaitForSecondsRealtime(textSpeed);
+                float actual = Time.realtimeSinceStartup - start;
+                Debug.Log($"i={i}, expected={textSpeed:F3}s, actual={actual:F3}s, fps={1f / Time.unscaledDeltaTime:F0}");
             }
+
             while (!Input.anyKeyDown) yield return null;
             yield return null;
         }

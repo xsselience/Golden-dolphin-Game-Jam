@@ -2,64 +2,64 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-/// ×Ô¶¯ÅÚËşµ¥½Å±¾
-/// 1. ÉÈĞÎ»¡ĞÎÊÓÒ°¼ì²â£¨¾àÀë¡¢½Ç¶È¿ÉÔÚÃæ°åµ÷½Ú£©
-/// 2. Ô¤Áô¿ª»ğÂß¼­±ê¼ÇÎ»ÖÃ£¬Î´ÊµÏÖ·¢Éä×Óµ¯
-/// 3. ¸ÄÓÃ¾àÀë¼ì²â´úÌæTriggerÅö×²£¬°´CºÚÈëÏú»Ù
+/// è‡ªåŠ¨ç‚®å¡”å•è„šæœ¬
+/// 1. æ‰‡å½¢å¼§å½¢è§†é‡æ£€æµ‹ï¼ˆè·ç¦»ã€è§’åº¦å¯åœ¨é¢æ¿è°ƒèŠ‚ï¼‰
+/// 2. é¢„ç•™å¼€ç«é€»è¾‘æ ‡è®°ä½ç½®ï¼Œæœªå®ç°å‘å°„å­å¼¹
+/// 3. æ”¹ç”¨è·ç¦»æ£€æµ‹ä»£æ›¿Triggerç¢°æ’ï¼ŒæŒ‰Cé»‘å…¥é”€æ¯
 public class AutoTurret : MonoBehaviour
 {
-    [Header("ÉÈĞÎÊÓÒ°¼ì²â²ÎÊı")]
-    [Tooltip("ÊÓÒ°×îÔ¶¼ì²â¾àÀë")]
+    [Header("æ‰‡å½¢è§†é‡æ£€æµ‹å‚æ•°")]
+    [Tooltip("è§†é‡æœ€è¿œæ£€æµ‹è·ç¦»")]
     public float sightDistance = 4f;
-    [Tooltip("ÉÈĞÎÊÓÒ°×óÓÒ×Ü½Ç¶È£¬Èç60=×óÓÒ¸÷30¡ã")]
+    [Tooltip("æ‰‡å½¢è§†é‡å·¦å³æ€»è§’åº¦ï¼Œå¦‚60=å·¦å³å„30Â°")]
     public float sightAngle = 60f;
-    [Tooltip("Íæ¼ÒËùÔÚ²ã¼¶£¬Ö»¼ì²âPlayer²ã")]
+    [Tooltip("ç©å®¶æ‰€åœ¨å±‚çº§ï¼Œåªæ£€æµ‹Playerå±‚")]
     public LayerMask playerLayer;
-    [Header("×Óµ¯·¢ÉäÅäÖÃ")]
-    [Tooltip("·½ĞÎ×Óµ¯Ô¤ÖÆÌå")]
+    [Header("å­å¼¹å‘å°„é…ç½®")]
+    [Tooltip("æ–¹å½¢å­å¼¹é¢„åˆ¶ä½“")]
     public GameObject bulletPrefab;
-    [Tooltip("×Óµ¯·ÉĞĞËÙ¶È£¨Íâ²¿¿Éµ÷½Ú£©")]
+    [Tooltip("å­å¼¹é£è¡Œé€Ÿåº¦ï¼ˆå¤–éƒ¨å¯è°ƒèŠ‚ï¼‰")]
     public float bulletSpeed = 8f;
-    [Tooltip("Á½´Î·¢ÉäÀäÈ´¼ä¸ô")]
+    [Tooltip("ä¸¤æ¬¡å‘å°„å†·å´é—´éš”")]
     public float fireCooldown = 0.6f;
     private float fireTimer;
-    [Header("½»»¥×Ô±¬ÉèÖÃ")]
-    [Tooltip("ºÚÈë³É¹¦ºóÏú»ÙÎïÌåµÄÑÓ³ÙÊ±¼ä")]
+    [Header("äº¤äº’è‡ªçˆ†è®¾ç½®")]
+    [Tooltip("é»‘å…¥æˆåŠŸåé”€æ¯ç‰©ä½“çš„å»¶è¿Ÿæ—¶é—´")]
     public float destroyDelay = 0.8f;
-    [Tooltip("Íæ¼Ò½»»¥·¶Î§°ë¾¶")]
+    [Tooltip("ç©å®¶äº¤äº’èŒƒå›´åŠå¾„")]
     public float interactRadius = 2f;
-    [Header("¿ÉÊÓ»¯ÉèÖÃ")]
-    [Tooltip("ÊÇ·ñÏÔÊ¾ÊÓÒ°·¶Î§£¨ÔÚÓÎÏ·³¡¾°ÖĞ£©")]
+    [Header("å¯è§†åŒ–è®¾ç½®")]
+    [Tooltip("æ˜¯å¦æ˜¾ç¤ºè§†é‡èŒƒå›´ï¼ˆåœ¨æ¸¸æˆåœºæ™¯ä¸­ï¼‰")]
     public bool showVisionRange = true;
-    [Tooltip("ÊÓÒ°ÏßÌõÑÕÉ«")]
+    [Tooltip("è§†é‡çº¿æ¡é¢œè‰²")]
     public Color visionColor = Color.red;
-    [Tooltip("½»»¥·¶Î§ÑÕÉ«")]
+    [Tooltip("äº¤äº’èŒƒå›´é¢œè‰²")]
     public Color interactColor = Color.yellow;
 
-    // ĞÂÔöUIÌáÊ¾
+    // æ–°å¢UIæç¤º
     private Text promptText;
-    private readonly string hackTip = "[C] ºÚÈëÅÚËş";
+    private readonly string hackTip = "[C] é»‘å…¥ç‚®å¡”";
 
-    // »º´æÍæ¼ÒÎïÌå
+    // ç¼“å­˜ç©å®¶ç‰©ä½“
     private Transform playerTrans;
-    // ±ê¼ÇÅÚËşÊÇ·ñÒÑ¾­±»ºÚÈë×Ô±¬
+    // æ ‡è®°ç‚®å¡”æ˜¯å¦å·²ç»è¢«é»‘å…¥è‡ªçˆ†
     private bool isHacked = false;
-    // ±ê¼ÇÍæ¼ÒÊÇ·ñ´¦ÓÚ½»»¥·¶Î§ÄÚ
+    // æ ‡è®°ç©å®¶æ˜¯å¦å¤„äºäº¤äº’èŒƒå›´å†…
     private bool playerInInteractRange = false;
-    // ¿ÉÊÓ»¯×é¼ş
+    // å¯è§†åŒ–ç»„ä»¶
     private LineRenderer visionLineRenderer;
     private LineRenderer interactLineRenderer;
 
     void Start()
     {
-        // Æô¶¯Ê±²éÕÒÍæ¼Ò£¬TagÎªPlayer
+        // å¯åŠ¨æ—¶æŸ¥æ‰¾ç©å®¶ï¼ŒTagä¸ºPlayer
         GameObject p = GameObject.FindWithTag("Player");
         if (p != null)
             playerTrans = p.transform;
         else
-            Debug.LogWarning("Î´ÕÒµ½TagÎª'Player'µÄÓÎÏ·¶ÔÏó£¡");
+            Debug.LogWarning("æœªæ‰¾åˆ°Tagä¸º'Player'çš„æ¸¸æˆå¯¹è±¡ï¼");
 
-        // ²éÕÒÌáÊ¾UI
+        // æŸ¥æ‰¾æç¤ºUI
         if (p != null)
         {
             Transform textTrans = p.transform.Find("Canvas/PromptText");
@@ -70,24 +70,24 @@ public class AutoTurret : MonoBehaviour
             }
         }
 
-        // ´´½¨¿ÉÊÓ»¯ÏßÌõ
+        // åˆ›å»ºå¯è§†åŒ–çº¿æ¡
         SetupVisionLines();
     }
 
     void Update()
     {
-        // ÒÑ¾­ºÚÈë£¬Í£Ö¹ËùÓĞÂß¼­
+        // å·²ç»é»‘å…¥ï¼Œåœæ­¢æ‰€æœ‰é€»è¾‘
         if (isHacked)
         {
             if (promptText != null) promptText.enabled = false;
             return;
         }
 
-        // ÀäÈ´µ¹¼ÆÊ±
+        // å†·å´å€’è®¡æ—¶
         if (fireTimer > 0)
             fireTimer -= Time.deltaTime;
 
-        // 1. Ã¿Ö¡Ö´ĞĞÉÈĞÎÊÓÒ°¼ì²â
+        // 1. æ¯å¸§æ‰§è¡Œæ‰‡å½¢è§†é‡æ£€æµ‹
         bool canFire = CheckSightView();
         if (canFire && fireTimer <= 0)
         {
@@ -95,26 +95,26 @@ public class AutoTurret : MonoBehaviour
             fireTimer = fireCooldown;
         }
 
-        // ¡¾Ìæ»»¡¿Ã¿Ö¡¾àÀë¼ì²âÅĞ¶ÏÍæ¼ÒÊÇ·ñÔÚ½»»¥È¦ÄÚ£¬²»ÔÙÓÃTrigger
+        // ã€æ›¿æ¢ã€‘æ¯å¸§è·ç¦»æ£€æµ‹åˆ¤æ–­ç©å®¶æ˜¯å¦åœ¨äº¤äº’åœˆå†…ï¼Œä¸å†ç”¨Trigger
         CheckInteractRangeByDistance();
 
-        // ¿ØÖÆÌáÊ¾ÎÄ×ÖÏÔÊ¾Òş²Ø
+        // æ§åˆ¶æç¤ºæ–‡å­—æ˜¾ç¤ºéšè—
         UpdatePromptText();
 
-        // 2. Íæ¼ÒÔÚ½»»¥È¦ÄÚ¡¢°´ÏÂC¼ü£¬Ö´ĞĞºÚÈë×Ô±¬
+        // 2. ç©å®¶åœ¨äº¤äº’åœˆå†…ã€æŒ‰ä¸‹Cé”®ï¼Œæ‰§è¡Œé»‘å…¥è‡ªçˆ†
         if (playerInInteractRange && Input.GetKeyDown(KeyCode.C))
         {
             HackAndDestroy();
         }
 
-        // ¸üĞÂ¿ÉÊÓ»¯ÏßÌõ£¨Ã¿Ö¡¸üĞÂÎ»ÖÃ£©
+        // æ›´æ–°å¯è§†åŒ–çº¿æ¡ï¼ˆæ¯å¸§æ›´æ–°ä½ç½®ï¼‰
         if (showVisionRange)
         {
             UpdateVisionLines();
         }
     }
 
-    // ĞÂÔö£º¾àÀë¼ì²âÌæ´úTriggerÅö×²
+    // æ–°å¢ï¼šè·ç¦»æ£€æµ‹æ›¿ä»£Triggerç¢°æ’
     void CheckInteractRangeByDistance()
     {
         if (playerTrans == null)
@@ -127,7 +127,7 @@ public class AutoTurret : MonoBehaviour
         playerInInteractRange = dis <= interactRadius;
     }
 
-    // ĞÂÔö£º¿ØÖÆÌáÊ¾ÎÄ×Ö
+    // æ–°å¢ï¼šæ§åˆ¶æç¤ºæ–‡å­—
     void UpdatePromptText()
     {
         if (promptText == null) return;
@@ -142,10 +142,10 @@ public class AutoTurret : MonoBehaviour
         }
     }
 
-    /// ÉèÖÃ¿ÉÊÓ»¯ÏßÌõ
+    /// è®¾ç½®å¯è§†åŒ–çº¿æ¡
     void SetupVisionLines()
     {
-        // ´´½¨ÉÈĞÎÊÓÒ°µÄLineRenderer
+        // åˆ›å»ºæ‰‡å½¢è§†é‡çš„LineRenderer
         GameObject visionObj = new GameObject("VisionRange");
         visionObj.transform.SetParent(transform);
         visionObj.transform.localPosition = Vector3.zero;
@@ -159,7 +159,7 @@ public class AutoTurret : MonoBehaviour
         visionLineRenderer.positionCount = 0;
         visionLineRenderer.useWorldSpace = true;
 
-        // ´´½¨½»»¥·¶Î§µÄLineRenderer
+        // åˆ›å»ºäº¤äº’èŒƒå›´çš„LineRenderer
         GameObject interactObj = new GameObject("InteractRange");
         interactObj.transform.SetParent(transform);
         interactObj.transform.localPosition = Vector3.zero;
@@ -174,13 +174,13 @@ public class AutoTurret : MonoBehaviour
         interactLineRenderer.useWorldSpace = true;
     }
 
-    /// ¸üĞÂ¿ÉÊÓ»¯ÏßÌõ
+    /// æ›´æ–°å¯è§†åŒ–çº¿æ¡
     void UpdateVisionLines()
     {
         if (visionLineRenderer == null || interactLineRenderer == null) return;
         Vector3 pos = transform.position;
         Vector3 forwardDir = transform.right;
-        // ¸üĞÂÉÈĞÎÊÓÒ°
+        // æ›´æ–°æ‰‡å½¢è§†é‡
         int segments = 30;
         List<Vector3> points = new List<Vector3>();
         for (int i = 0; i <= segments; i++)
@@ -194,7 +194,7 @@ public class AutoTurret : MonoBehaviour
         visionLineRenderer.positionCount = points.Count;
         visionLineRenderer.SetPositions(points.ToArray());
 
-        // ¸üĞÂ½»»¥·¶Î§Ô²ĞÎ£¨Ê¹ÓÃÃæ°åinteractRadius£©
+        // æ›´æ–°äº¤äº’èŒƒå›´åœ†å½¢ï¼ˆä½¿ç”¨é¢æ¿interactRadiusï¼‰
         float radius = interactRadius;
         int circleSegments = 36;
         List<Vector3> circlePoints = new List<Vector3>();
@@ -208,7 +208,7 @@ public class AutoTurret : MonoBehaviour
         interactLineRenderer.SetPositions(circlePoints.ToArray());
     }
 
-    /// ÉÈĞÎ»¡ĞÎÊÓÒ°¼ì²â
+    /// æ‰‡å½¢å¼§å½¢è§†é‡æ£€æµ‹
     bool CheckSightView()
     {
         if (playerTrans == null)
@@ -231,24 +231,24 @@ public class AutoTurret : MonoBehaviour
         return false;
     }
 
-    /// ·¢Éä×Óµ¯
-    /// ·¢Éä×Óµ¯
+    /// å‘å°„å­å¼¹
+    /// å‘å°„å­å¼¹
     void FireBullet()
     {
         if (bulletPrefab == null)
         {
-            Debug.LogWarning("×Óµ¯Ô¤ÖÆÌåÎ´ÉèÖÃ£¡ÇëÔÚInspectorÖĞÍÏ×§¸³Öµ¡£");
+            Debug.LogWarning("å­å¼¹é¢„åˆ¶ä½“æœªè®¾ç½®ï¼è¯·åœ¨Inspectorä¸­æ‹–æ‹½èµ‹å€¼ã€‚");
             return;
         }
         if (playerTrans == null) return;
 
-        // ¼ÆËã³¯ÏòÍæ¼ÒµÄ¹éÒ»»¯·½Ïò
+        // è®¡ç®—æœå‘ç©å®¶çš„å½’ä¸€åŒ–æ–¹å‘
         Vector2 targetDir = (playerTrans.position - transform.position).normalized;
-        // ¸ù¾İ·½ÏòÉèÖÃ×Óµ¯Ğı×ª£¨2D spriteÄ¬ÈÏ³¯ÓÒ£©
+        // æ ¹æ®æ–¹å‘è®¾ç½®å­å¼¹æ—‹è½¬ï¼ˆ2D spriteé»˜è®¤æœå³ï¼‰
         float bulletAngle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg+180f;
         Quaternion bulletRot = Quaternion.Euler(0, 0, bulletAngle);
 
-        // ¹Ø¼üĞŞ¸Ä£ºÔ¤ÖÆÌå²ÎÊı¸ÄÓÃ bulletPrefab£¬¾Ö²¿±äÁ¿¸ÄÃû±ÜÃâ³åÍ»
+        // å…³é”®ä¿®æ”¹ï¼šé¢„åˆ¶ä½“å‚æ•°æ”¹ç”¨ bulletPrefabï¼Œå±€éƒ¨å˜é‡æ”¹åé¿å…å†²çª
         GameObject newBullet = Instantiate(bulletPrefab, transform.position, bulletRot);
 
         Collider2D turretCol = GetComponent<Collider2D>();
@@ -263,7 +263,7 @@ public class AutoTurret : MonoBehaviour
         {
             b.bulletSpeed = bulletSpeed;
             b.targetDir = targetDir;
-            Debug.Log($"×Óµ¯´´½¨³É¹¦£¬ËÙ¶È: {b.bulletSpeed}, ·½Ïò: {b.targetDir}");
+            Debug.Log($"å­å¼¹åˆ›å»ºæˆåŠŸï¼Œé€Ÿåº¦: {b.bulletSpeed}, æ–¹å‘: {b.targetDir}");
         }
         else
         {
@@ -273,10 +273,19 @@ public class AutoTurret : MonoBehaviour
         }
     }
 
-    /// ºÚÈëÅÚËş£¬ÑÓ³ÙÏú»ÙÄ£Äâ×Ô±¬
+    /// é»‘å…¥ç‚®å¡”ï¼Œå»¶è¿Ÿé”€æ¯æ¨¡æ‹Ÿè‡ªçˆ†
     void HackAndDestroy()
     {
         isHacked = true;
+
+        // ç©å®¶é»‘å…¥è®¡æ•° +1
+        if (playerTrans != null)
+        {
+            player p = playerTrans.GetComponent<player>();
+            if (p != null)
+                p.IncrementHackCount();
+        }
+
         if (promptText != null) promptText.enabled = false;
         if (visionLineRenderer != null) visionLineRenderer.enabled = false;
         if (interactLineRenderer != null) interactLineRenderer.enabled = false;
@@ -288,7 +297,7 @@ public class AutoTurret : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // ============ ÒÑÍêÈ«É¾³ıÔ­À´ OnTriggerEnter2D / OnTriggerExit2D£¬²»ÔÙÊ¹ÓÃÅö×²Æ÷´¥·¢ ============
+    // ============ å·²å®Œå…¨åˆ é™¤åŸæ¥ OnTriggerEnter2D / OnTriggerExit2Dï¼Œä¸å†ä½¿ç”¨ç¢°æ’å™¨è§¦å‘ ============
 
     void OnDestroy()
     {
@@ -300,13 +309,13 @@ public class AutoTurret : MonoBehaviour
 
     void OnDrawGizmosSelected()
     {
-        // ³¡¾°ÊÓÍ¼»æÖÆ½»»¥·¶Î§Ô²ĞÎ
+        // åœºæ™¯è§†å›¾ç»˜åˆ¶äº¤äº’èŒƒå›´åœ†å½¢
         Gizmos.color = interactColor;
         Gizmos.DrawWireSphere(transform.position, interactRadius);
     }
 }
 
-// ¼òµ¥×Óµ¯ÒÆ¶¯½Å±¾£¨Èç¹ûÃ»ÓĞBulletSquare½Å±¾Ê±Ê¹ÓÃ£©
+// ç®€å•å­å¼¹ç§»åŠ¨è„šæœ¬ï¼ˆå¦‚æœæ²¡æœ‰BulletSquareè„šæœ¬æ—¶ä½¿ç”¨ï¼‰
 public class SimpleBullet : MonoBehaviour
 {
     public Vector2 targetDir;

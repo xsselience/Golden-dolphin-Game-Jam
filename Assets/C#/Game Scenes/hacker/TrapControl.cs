@@ -25,6 +25,25 @@ public class TrapControl : MonoBehaviour
         if (sr != null) sr.color = inactiveColor;
     }
 
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector3 mouseWorld = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mouseWorld.z = 0;
+            Collider2D hit = Physics2D.OverlapPoint(mouseWorld);
+            if (hit != null)
+            {
+                Debug.Log($"点击到了: {hit.gameObject.name}");
+            }
+            else
+            {
+                Debug.Log("点击空白区域");
+            }
+        }
+    }
+
+
     public void Activate()
     {
         if (isActivated) return;
@@ -44,6 +63,7 @@ public class TrapControl : MonoBehaviour
 
     void OnMouseDown()
     {
+        Debug.Log($"[TrapControl] 点击 {gameObject.name}, isTutorial={isTutorial}");
         player p = FindObjectOfType<player>();
         if (p != null) p.TryActivateTrap(this);
     }

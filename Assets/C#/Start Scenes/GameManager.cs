@@ -17,6 +17,8 @@ public class GameManager : MonoBehaviour
     private player currentPlayer;
     private GameObject playerObj;
 
+    private bool isRetrying = false;
+
     private bool spawningInProgress = false;
     private bool isLoadingSave = false;
     private SaveData pendingSaveData;
@@ -35,6 +37,19 @@ public class GameManager : MonoBehaviour
 
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        if (isRetrying)
+        {
+            isRetrying = false;
+            GameObject img = GameObject.Find("Imagezzz");
+            if (img != null) img.SetActive(false);
+        }
+        // 场景重载后重新找 deathPanel（旧引用已失效）
+        if (deathPanel == null)
+        {
+            GameObject dp = GameObject.Find("DeathPanel");
+            if (dp != null) deathPanel = dp;
+        }
+
         StartCoroutine(SpawnPlayerDelayed(scene));
     }
 
@@ -108,6 +123,28 @@ public class GameManager : MonoBehaviour
         isLoadingSave = false;
         pendingSaveData = null;
         spawningInProgress = false;
+
+        // 重置玩家状态
+        currentPlayer.controlsDisabled = false;
+        currentPlayer.isKnockedBack = false;
+
+        // 清除残留动画
+        Animator pAnim = currentPlayer.GetComponent<Animator>();
+        if (pAnim != null)
+        {
+            pAnim.SetBool("attacktrue", false);
+            pAnim.SetBool("dfstrue", false);
+            pAnim.SetBool("defensedowntrue", false);
+            pAnim.SetBool("jumptrue", false);
+            pAnim.SetBool("dashtrue", false);
+            pAnim.SetFloat("runfloat", 0f);
+            pAnim.ResetTrigger("dietrue");
+        }
+
+        // 隐藏死亡相关物体
+        // （如果 player 上有 deathObject1/2 的引用，也关掉它们）
+
+        spawningInProgress = false;
     }
 
     public void LoadFromSlot(int slot)
@@ -172,13 +209,27 @@ public class GameManager : MonoBehaviour
 
     public void Retry()
     {
-        if (deathPanel != null) deathPanel.SetActive(false);
-        LoadLatestSave();
+        isRetrying = true;
+
+        if (playerObj != null)
+        {
+            Destroy(playerObj);
+            playerObj = null;
+            currentPlayer = null;
+        }
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void BackToMenu()
     {
+        if (deathPanel == null)
+        {
+            GameObject dp = GameObject.Find("DeathPanel");
+            if (dp != null) deathPanel = dp;
+        }
         if (deathPanel != null) deathPanel.SetActive(false);
+
         SceneManager.LoadScene(mainMenuScene);
     }
 
