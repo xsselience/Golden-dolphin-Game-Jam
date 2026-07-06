@@ -4858,7 +4858,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c6a9cb8c2a91ad4f919445347c45f7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bgmClip: {fileID: 8300000, guid: eca26a5989ad6bc45a923e4d706543bc, type: 3}
+  bgmClip: {fileID: 8300000, guid: 6326818374f5f9e4288c1788c48e6680, type: 3}
   maxVolume: 0.6
   fadeTime: 0.8
 --- !u!4 &1809883713
@@ -6072,7 +6072,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 584965819391112749, guid: 45750d0bc53e4864fbc2229c24a015f8, type: 3}
       propertyPath: m_SortingOrder
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 978376957496089070, guid: 45750d0bc53e4864fbc2229c24a015f8, type: 3}
       propertyPath: m_Layer

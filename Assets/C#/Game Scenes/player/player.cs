@@ -118,7 +118,12 @@ public class player : MonoBehaviour
     public bool dashtrue;
     public float runfloat;
 
-    
+    [Header("移动音效")]
+    [SerializeField] private AudioClip moveSound;
+    private AudioSource moveAudioSource;
+    private bool moveSoundPlaying = false;
+
+
     public void SetHackCount(int count) => hackCount = count;
     public int GetHackCount() => hackCount;
     public void SetCyberPower(int power) { currentCyberPower = power; UpdateCyberUI(); }
@@ -138,6 +143,12 @@ public class player : MonoBehaviour
         anim = GetComponent<Animator>();
         currentCyberPower = maxCyberPower;
         UpdateCyberUI();
+
+        moveAudioSource = gameObject.AddComponent<AudioSource>();
+        moveAudioSource.clip = moveSound;
+        moveAudioSource.loop = true;
+        moveAudioSource.playOnAwake = false;
+        moveAudioSource.volume = 0.5f;
     }
 
     // Update is called once per frame
@@ -165,14 +176,24 @@ public class player : MonoBehaviour
 
     public void move()//移动
     {
-        if (isKnockedBack) return;
-        if (isKnockedBack || attackLocked) return;
-        if (isDashing) return;
+        if (isKnockedBack || attackLocked || isDashing) return;
 
         number = Input.GetAxis("Horizontal");
         playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);
 
-        // 奔跑动画：地面 + 有水平输入 → 用速度绝对值
+        // 移动音效
+        bool shouldPlay = inground && Mathf.Abs(number) > 0.1f;
+        if (shouldPlay && !moveSoundPlaying)
+        {
+            moveAudioSource.Play();
+            moveSoundPlaying = true;
+        }
+        else if (!shouldPlay && moveSoundPlaying)
+        {
+            moveAudioSource.Stop();
+            moveSoundPlaying = false;
+        }
+
         if (inground && Mathf.Abs(number) > 0.1f)
             runfloat = Mathf.Abs(number);
         else

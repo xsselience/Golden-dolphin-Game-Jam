@@ -2981,6 +2981,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1190520720}
   - component: {fileID: 1190520719}
+  - component: {fileID: 1190520721}
   m_Layer: 0
   m_Name: Cmfollow
   m_TagString: Untagged
@@ -3018,6 +3019,21 @@ Transform:
   - {fileID: 753277471}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1190520721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190520718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8c6a9cb8c2a91ad4f919445347c45f7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bgmClip: {fileID: 8300000, guid: 9307c768346d8b04494d5116f08087d0, type: 3}
+  maxVolume: 0.6
+  fadeTime: 0.8
 --- !u!1 &1237683367
 GameObject:
   m_ObjectHideFlags: 0

@@ -29,4 +29,10 @@ public class music : MonoBehaviour
         source.loop = true;
         source.Play();
     }
+
+    public void StopMusic()
+    {
+        if (source != null)
+            source.Stop();
+    }
 }

@@ -29,6 +29,13 @@ public class SceneGate : MonoBehaviour
     [Header("结局")]
     [SerializeField] private bool isEndingScene = false;   // 勾上就走结局文本，不勾正常切场景
 
+    [Header("结局音效")]
+    [SerializeField] private AudioClip endingMusic1;      // 结局1音乐
+    [SerializeField] private AudioClip endingMusic2;      // 结局2音乐
+
+    private AudioSource audioSource;
+    private int currentEnding = 1;
+
     private player currentPlayer;
     private Animator gateAnim;
     private Rigidbody2D playerRb;
@@ -64,6 +71,12 @@ public class SceneGate : MonoBehaviour
             StartCoroutine(ArrivalSequence());
         else if (currentPlayer != null)
             currentPlayer.controlsDisabled = false;   // 不播到达动画就立刻解锁
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
     }
 
     IEnumerator ArrivalSequence()
@@ -158,6 +171,18 @@ public class SceneGate : MonoBehaviour
     /// <summary>退场动画末端 Animation Event 调用</summary>
     public void OnExitEnd()
     {
+        // 停掉场景 BGM
+        music bgm = FindObjectOfType<music>();
+        if (bgm != null) bgm.StopMusic();
+
+        // 播结局音乐
+        AudioClip clip = currentEnding == 1 ? endingMusic1 : endingMusic2;
+        if (clip != null && audioSource != null)
+        {
+            audioSource.clip = clip;
+            audioSource.Play();
+        }
+
         if (isEndingScene)
             StartCoroutine(PlayEndingText());
         else
@@ -202,8 +227,8 @@ public class SceneGate : MonoBehaviour
     {
         if (exitTriggered) return;
         exitTriggered = true;
+        currentEnding = ending;
 
-        // 直接播退场动画
         if (playExit && gateAnim != null)
             gateAnim.SetBool("gonextlevel", true);
         else

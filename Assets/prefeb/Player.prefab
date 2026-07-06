@@ -1925,6 +1925,7 @@ MonoBehaviour:
   jumptrue: 0
   dashtrue: 0
   runfloat: 0
+  moveSound: {fileID: 8300000, guid: 679c7e1c2b989a1459501b849bd3243d, type: 3}
 --- !u!114 &6746091904966382327
 MonoBehaviour:
   m_ObjectHideFlags: 0
