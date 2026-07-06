@@ -492,6 +492,7 @@ GameObject:
   - component: {fileID: 217453660}
   - component: {fileID: 217453659}
   - component: {fileID: 217453661}
+  - component: {fileID: 217453662}
   m_Layer: 0
   m_Name: "\u56FE\u5C42 5 \u526F\u672C 6@2x"
   m_TagString: Untagged
@@ -591,6 +592,51 @@ MonoBehaviour:
   showVisionRange: 0
   visionColor: {r: 1, g: 0, b: 0, a: 1}
   interactColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+--- !u!61 &217453662
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 217453658}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0.13716996, y: -0.7772927}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 2, y: 3.4}
+    newSize: {x: 2, y: 3.4}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 3.3716986, y: 4.954585}
+  m_EdgeRadius: 0
 --- !u!1 &231205771
 GameObject:
   m_ObjectHideFlags: 0
@@ -622,7 +668,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   lines:
-  - "\u201C\u7F57\u5FB7\u68EE\u201D|\u597D\u591A\u70AE\u53F0\uFF0C\u745E\u96EF\uFF0C\u8BA9\u6211\u628A\u5B83\u4EEC\u70B8\u6389(\u2310\u25A0_\u25A0)"
+  - "\u201C\u7F57\u5FB7\u68EE\u201D|\u597D\u591A\u70AE\u53F0\uFF0C\u745E\u96EF\uFF0C\u9760\u8FD1\u5B83\u4EEC\u53EF\u4EE5\u9ED1\u5165\u8FDB\u53BB(\u2310\u25A0_\u25A0)"
   - "\u745E\u96EF|\u5148\u8BA9\u6211\u89C2\u5BDF\u4E00\u4E0B\u3002"
   - "\u201C\u7F57\u5FB7\u68EE\u201D|\u6840\u6840\u6840\uFF0CSiu\u2014\u2014BOOM\uFF01\uFF01\uFF01
     \uFF9F\u2200\uFF9F)\uA4B1\u0A6D\u055E\u055E"
@@ -665,7 +711,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -13.539773, y: -65.461395}
+  m_Offset: {x: -13.539773, y: -65.248375}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -676,7 +722,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 4.129778, y: 11.634094}
+  m_Size: {x: 4.129778, y: 12.060139}
   m_EdgeRadius: 0
 --- !u!4 &231205774
 Transform:
