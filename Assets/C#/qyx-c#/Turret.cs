@@ -232,6 +232,7 @@ public class AutoTurret : MonoBehaviour
     }
 
     /// 发射子弹
+    /// 发射子弹
     void FireBullet()
     {
         if (bulletPrefab == null)
@@ -240,27 +241,34 @@ public class AutoTurret : MonoBehaviour
             return;
         }
         if (playerTrans == null) return;
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, transform.rotation);
+
+        // 计算朝向玩家的归一化方向
+        Vector2 targetDir = (playerTrans.position - transform.position).normalized;
+        // 根据方向设置子弹旋转（2D sprite默认朝右）
+        float bulletAngle = Mathf.Atan2(targetDir.y, targetDir.x) * Mathf.Rad2Deg+180f;
+        Quaternion bulletRot = Quaternion.Euler(0, 0, bulletAngle);
+
+        // 关键修改：预制体参数改用 bulletPrefab，局部变量改名避免冲突
+        GameObject newBullet = Instantiate(bulletPrefab, transform.position, bulletRot);
 
         Collider2D turretCol = GetComponent<Collider2D>();
-        Collider2D bulletCol = bullet.GetComponent<Collider2D>();
+        Collider2D bulletCol = newBullet.GetComponent<Collider2D>();
         if (turretCol != null && bulletCol != null)
         {
             Physics2D.IgnoreCollision(turretCol, bulletCol);
         }
 
-        BulletSquare b = bullet.GetComponent<BulletSquare>();
+        BulletSquare b = newBullet.GetComponent<BulletSquare>();
         if (b != null)
         {
             b.bulletSpeed = bulletSpeed;
-            b.targetDir = (playerTrans.position - transform.position).normalized;
+            b.targetDir = targetDir;
             Debug.Log($"子弹创建成功，速度: {b.bulletSpeed}, 方向: {b.targetDir}");
         }
         else
         {
-          
-            SimpleBullet simpleBullet = bullet.AddComponent<SimpleBullet>();
-            simpleBullet.targetDir = (playerTrans.position - transform.position).normalized;
+            SimpleBullet simpleBullet = newBullet.AddComponent<SimpleBullet>();
+            simpleBullet.targetDir = targetDir;
             simpleBullet.bulletSpeed = bulletSpeed;
         }
     }

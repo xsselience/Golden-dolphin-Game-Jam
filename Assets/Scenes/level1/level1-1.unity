@@ -996,6 +996,8 @@ MonoBehaviour:
   textSpeed: 0.05
   textStartDelay: 0.5
   isEndingScene: 0
+  endingMusic1: {fileID: 0}
+  endingMusic2: {fileID: 0}
 --- !u!95 &587623508
 Animator:
   serializedVersion: 5
@@ -2319,7 +2321,7 @@ BoxCollider2D:
   m_IsTrigger: 1
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -8.877729, y: 0.6080632}
+  m_Offset: {x: -0.21635818, y: 0.6080632}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -2330,7 +2332,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 24.567127, y: 7.4761267}
+  m_Size: {x: 7.244385, y: 7.4761267}
   m_EdgeRadius: 0
 --- !u!114 &1317670659
 MonoBehaviour:
@@ -2344,12 +2346,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb9c0580333abfe40a6db8d5e6e9f4db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipText: "F\u4F7F\u7528\u552E\u8D27\u673A"
+  tipText: "F\u6062\u590D\u8840\u91CF"
   isSpecialVendingMachine: 0
   interactCooldown: 2
   vendingAnim: {fileID: 0}
   animParam: UseMachine
-  saveBGM: {fileID: 8300000, guid: fd274d04841e5734fb9fc2b4fba3156c, type: 3}
+  saveBGM: {fileID: 0}
   maxVolume: 0.6
   fadeDuration: 0.8
   playerRef: {fileID: 0}
