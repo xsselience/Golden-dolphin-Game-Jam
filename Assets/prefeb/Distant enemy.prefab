@@ -259,18 +259,19 @@ MonoBehaviour:
   waypoints:
   - {fileID: 0}
   - {fileID: 0}
-  patrolSpeed: 15
+  patrolSpeed: 7
   waitAtWaypoint: 1
-  chaseSpeed: 18
+  chaseSpeed: 11
   detectionRange: 12
   detectionAngle: 29.5
-  attackRange: 5
-  attackCooldown: 20
+  attackRange: 4
+  attackCooldown: 5
   bulletPrefab: {fileID: 396584733270929851, guid: 1f731cea873f329469b0edc974eadd25, type: 3}
   firePoint: {fileID: 7687792144114896373}
   bulletSpeed: 9
   bulletDamage: 5
   attackLockDuration: 4
+  shootInterval: 5
   Attacking: 0
   playerLayer:
     serializedVersion: 2
