@@ -22,8 +22,8 @@ public class RangedEnemy : MonoBehaviour
     [Header("攻击组件")]
     [Tooltip("攻击有效范围，玩家进入该范围敌人开始攻击")]
     [SerializeField] private float attackRange = 5f;
-    [Tooltip("两次发射子弹的冷却间隔")]
-    [SerializeField] private float attackCooldown = 2f;
+    //[Tooltip("两次发射子弹的冷却间隔")]
+    //private float attackCooldown = 2f;
     [Tooltip("子弹预制体，拖入做好的子弹")]
     [SerializeField] private GameObject bulletPrefab;
     [Tooltip("子弹生成发射点，放在敌人枪口位置")]
@@ -34,7 +34,7 @@ public class RangedEnemy : MonoBehaviour
     [SerializeField] private int bulletDamage = 10;
     [Header("攻击缓冲")]
     [Tooltip("发射子弹后锁定攻击状态的时长，防止状态来回切换连发")]
-    [SerializeField] private float attackLockDuration = 0.6f;
+    //private float attackLockDuration = 0.6f;
     private float attackLockTimer = 0;
     [Tooltip("子弹发射强制冷却，填5就是5秒才能射一次")]
     [SerializeField] private float shootInterval = 5f;

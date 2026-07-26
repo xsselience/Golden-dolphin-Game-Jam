@@ -15,7 +15,7 @@ public class player : MonoBehaviour
     [Header("跳跃使用组件")]
     public float speedjump;
     private bool injump;
-    private bool isGliding;
+    //private bool isGliding;
     private bool isFalling;
     private bool inground;
     public Transform feet;
@@ -220,7 +220,7 @@ public class player : MonoBehaviour
 
         if (Input.GetButtonDown("Jump") && inground)
         {
-            isGliding = false;
+            //isGliding = false;
             playerRb.gravityScale = 6;
             playerRb.velocity = new Vector2(playerRb.velocity.x, speedjump);
             jumptrue = true;
