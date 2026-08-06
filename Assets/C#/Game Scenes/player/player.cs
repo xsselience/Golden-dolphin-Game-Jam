@@ -8,6 +8,12 @@ public class player : MonoBehaviour
     private Rigidbody2D playerRb;
     private Transform playertrans;
 
+    [Header("原地探头查看（相机左右上下偷看）")]
+    private float holdHorizontalTimer;
+    private float holdVerticalTimer;
+    private float lastHInput;
+    private float lastVInput;
+
     [Header("移动使用组件")]
     public float speed;
     public float number;
@@ -15,29 +21,27 @@ public class player : MonoBehaviour
     [Header("跳跃使用组件")]
     public float speedjump;
     private bool injump;
-    //private bool isGliding;
     private bool isFalling;
-    private bool inground;
+    private bool inground; // 修复：补充地面检测变量声明
     public Transform feet;
     public LayerMask ground;
 
     [Header("攻击使用组件")]
     public bool attack;
     private float attackGuardTimer = 0f;
-    private bool attackLocked = false;
+    public bool attackLocked = false;
 
     [Header("冲刺使用组件")]
-    public float dashSpeed = 20f;//冲刺时速度
+    public float dashSpeed = 20f;
     public float dashTime = 0.3f;
     public float dashCooldown = 1f;
-
     private bool isDashing;
-    private float dashTimer;    //冲刺持续多久
-    private float cooldownTimer;//冲刺冷却时间
-    private int dashDir;        // 冲刺锁定的方向
+    private float dashTimer;
+    private float cooldownTimer;
+    private int dashDir;
 
     [Header("穿越平台使用组件")]
-    public float Stime;//用了限制下落时松开s会被弹开的
+    public float Stime;
 
     [Header("图层组件")]
     private int playerLayer;
@@ -52,41 +56,37 @@ public class player : MonoBehaviour
     [Header("无敌")]
     public float invincibilityDuration = 1f;
     private bool isInvincible = false;
+
     [Header("无敌碰撞忽略")]
-    [SerializeField] private LayerMask enemyLayers;  // 把 Enemy 和 Boss 的图层都勾上
+    [SerializeField] private LayerMask enemyLayers;
 
     [Header("完美弹反窗口")]
-    public float perfectWindow = 0.2f;   // 右键按下后多久是完美弹反
+    public float perfectWindow = 0.2f;
 
     [Header("黑入模式")]
     [SerializeField] private float hackSlowTime = 0.1f;
     [SerializeField] private GameObject hackOverlay;
-    [SerializeField] private UnityEngine.UI.Text hackTimerText;      // 黑入倒计时
-    [SerializeField] private UnityEngine.UI.Text hackCooldownText;   // 冷却倒计时
-    [SerializeField] private float hackMaxDuration = 8f;           // 黑入最多持续多久
-    private List<FallingBullet> hackedBullets = new List<FallingBullet>();//搜索导弹
-
+    [SerializeField] private UnityEngine.UI.Text hackTimerText;
+    [SerializeField] private UnityEngine.UI.Text hackCooldownText;
+    [SerializeField] private float hackMaxDuration = 8f;
+    private List<FallingBullet> hackedBullets = new List<FallingBullet>();
     public bool hackingMode = false;
     private float hackTimer;
     private float hackCooldownTimer;
     private List<bossenemy> hackedTargets = new List<bossenemy>();
 
     [Header("普通格挡")]
-    public float blockDamageReduction = 0.5f;  // 格挡减免比例 (0.5=减半)
+    public float blockDamageReduction = 0.5f;
 
     [Header("算力系统")]
     [SerializeField] private int maxCyberPower = 100;
-    [SerializeField] private int portalActivationCost = 15;//黑入传送门的
+    [SerializeField] private int portalActivationCost = 15;
     [SerializeField] private float teleportCooldown = 10f;
-    [SerializeField] private UnityEngine.UI.Text cyberPowerText;   // UI 显示
-
-    [Header("算力消耗")]
+    [SerializeField] private UnityEngine.UI.Text cyberPowerText;
     [SerializeField] private int coverActivationCost = 3;
-    [SerializeField] private int boss2MissileHackCost = 5;//黑导弹的
+    [SerializeField] private int boss2MissileHackCost = 5;
     [SerializeField] private int trapActivationCost = 3;
-
     private List<Boss2Missile> hackedBoss2Missiles = new List<Boss2Missile>();
-
     private int currentCyberPower;
     private int hackCount = 0;
     private float teleportCooldownTimer;
@@ -97,8 +97,8 @@ public class player : MonoBehaviour
 
     [Header("格挡判定")]
     public SpriteRenderer sr;
-    public bool isBlocking;         // 右键按住
-    public bool perfectActive;      // 还在完美窗口内
+    public bool isBlocking;
+    public bool perfectActive;
 
     [Header("最后一击")]
     [SerializeField] private float finalBlowKnockbackForce = 30f;
@@ -107,8 +107,8 @@ public class player : MonoBehaviour
     [HideInInspector] public bool controlsDisabled = false;
 
     [Header("死亡显示")]
-    [SerializeField] private GameObject deathObject1;   // 死亡时显示的物体1
-    [SerializeField] private GameObject deathObject2;   // 死亡时显示的物体2
+    [SerializeField] private GameObject deathObject1;
+    [SerializeField] private GameObject deathObject2;
 
     [Header("动画 Bool 值")]
     public bool attacktrue;
@@ -123,17 +123,18 @@ public class player : MonoBehaviour
     private AudioSource moveAudioSource;
     private bool moveSoundPlaying = false;
 
+    [Header("房间传送过渡")]
+    private bool isInRoomTransition = false;
+    private float transitionHorizontalSpeed = 0f;
 
     public void SetHackCount(int count) => hackCount = count;
     public int GetHackCount() => hackCount;
     public void SetCyberPower(int power) { currentCyberPower = power; UpdateCyberUI(); }
     public int GetCyberPower() => currentCyberPower;
-
+    public int GetCurrentCyberPower() => currentCyberPower;
     public void SetCyberEnabled(bool on) => cyberSystemEnabled = on;
     public bool IsCyberEnabled() => cyberSystemEnabled;
 
-
-    // Start is called before the first frame update
     void Start()
     {
         playerRb = GetComponent<Rigidbody2D>();
@@ -143,7 +144,6 @@ public class player : MonoBehaviour
         anim = GetComponent<Animator>();
         currentCyberPower = maxCyberPower;
         UpdateCyberUI();
-
         moveAudioSource = gameObject.AddComponent<AudioSource>();
         moveAudioSource.clip = moveSound;
         moveAudioSource.loop = true;
@@ -151,37 +151,121 @@ public class player : MonoBehaviour
         moveAudioSource.volume = 0.5f;
     }
 
-    // Update is called once per frame
-    void Update()//技能等精细输入用
+    void Update()
     {
-        if (controlsDisabled) return;
-        if (teleportCooldownTimer > 0)
-            teleportCooldownTimer -= Time.unscaledDeltaTime;
-        Hacker();
-        Attacking();
-        dash();
-        JUMP();
-        IgnoreLayer();
-        SwitchAnim();
-        Defense();
+        // 普通控制禁用状态下直接返回（传送过渡除外）
+        if (controlsDisabled && !isInRoomTransition) return;
+
+        // 传送过渡状态下，只执行检测和动画，不响应输入
+        if (!isInRoomTransition)
+        {
+            if (teleportCooldownTimer > 0)
+                teleportCooldownTimer -= Time.unscaledDeltaTime;
+
+            Hacker();
+            Attacking();
+            dash();
+            JUMP();
+            IgnoreLayer();
+            Defense();
+        }
+
+        // 无论是否禁用控制，都执行地面检测和动画切换
         FixedupdateCheck();
+        SwitchAnim();
+
+        // 传送过渡时，单独处理朝向和动画参数
+        if (isInRoomTransition)
+        {
+            if (transitionHorizontalSpeed > 0.1f)
+                transform.localRotation = Quaternion.Euler(0, 0, 0);
+            else if (transitionHorizontalSpeed < -0.1f)
+                transform.localRotation = Quaternion.Euler(0, 180, 0);
+
+            runfloat = Mathf.Abs(transitionHorizontalSpeed) / speed;
+        }
+        if (isInRoomTransition)
+        {
+            if (transitionHorizontalSpeed > 0.1f)
+                transform.localRotation = Quaternion.Euler(0, 0, 0);
+            else if (transitionHorizontalSpeed < -0.1f)
+                transform.localRotation = Quaternion.Euler(0, 180, 0);
+            runfloat = Mathf.Abs(transitionHorizontalSpeed) / speed;
+        }
+        // ========== 原地长按探头查看逻辑 新增开始 ==========
+        // 禁用控制/冲刺/受伤/房间传送时直接取消探头
+        bool peekBlocked = controlsDisabled || isDashing || isKnockedBack || isInRoomTransition;
+        bool peekHoldKey = Input.GetKey(KeyCode.V); // 按住V才开启探头模式
+        float hInput = Input.GetAxisRaw("Horizontal");
+        float vInput = Input.GetAxisRaw("Vertical");
+        bool playerStandStill = Mathf.Abs(playerRb.velocity.x) < 0.05f;
+
+        // 水平长按计时
+        if (!peekBlocked && peekHoldKey && hInput != 0 && playerStandStill)
+        {
+            if (Mathf.Sign(hInput) == Mathf.Sign(lastHInput))
+                holdHorizontalTimer += Time.deltaTime;
+            else
+                holdHorizontalTimer = 0;
+        }
+        else
+        {
+            holdHorizontalTimer = 0;
+        }
+
+        // 垂直长按计时
+        if (!peekBlocked && peekHoldKey && vInput != 0 && playerStandStill)
+        {
+            if (Mathf.Sign(vInput) == Mathf.Sign(lastVInput))
+                holdVerticalTimer += Time.deltaTime;
+            else
+                holdVerticalTimer = 0;
+        }
+        else
+        {
+            holdVerticalTimer = 0;
+        }
+
+        lastHInput = hInput;
+        lastVInput = vInput;
+
+        // 计算探头偏移方向
+        Vector2 peekDir = Vector2.zero;
+        float needHoldTime = CameraZoneManager.Instance.peekHoldTime;
+        if (holdHorizontalTimer >= needHoldTime)
+            peekDir.x = Mathf.Sign(hInput);
+        if (holdVerticalTimer >= needHoldTime)
+            peekDir.y = Mathf.Sign(vInput);
+
+        // 发送给相机管理器
+        if (peekDir != Vector2.zero && !peekBlocked)
+            CameraZoneManager.Instance.SetPeekDirection(peekDir);
+        else
+            CameraZoneManager.Instance.ClearPeek();
+        // ========== 原地长按探头查看逻辑 新增结束 ==========
     }
 
-    private void FixedUpdate()//运动用
+    private void FixedUpdate()
     {
-        if (controlsDisabled) return;
         cooldownTimer -= Time.deltaTime;
+
+        // 传送过渡状态：强制水平移动
+        if (isInRoomTransition)
+        {
+            playerRb.velocity = new Vector2(transitionHorizontalSpeed, playerRb.velocity.y);
+            return;
+        }
+
+        if (controlsDisabled) return;
         move();
     }
 
-    public void move()//移动
+    public void move()
     {
         if (isKnockedBack || attackLocked || isDashing) return;
-
         number = Input.GetAxis("Horizontal");
         playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);
 
-        // 移动音效
         bool shouldPlay = inground && Mathf.Abs(number) > 0.1f;
         if (shouldPlay && !moveSoundPlaying)
         {
@@ -202,37 +286,28 @@ public class player : MonoBehaviour
         if (!attack) File();
     }
 
-    private void File()//镜像反转
+    private void File()
     {
         if (playerRb.velocity.x > .1f)
-        {
             transform.localRotation = Quaternion.Euler(0, 0, 0);
-        }
         if (playerRb.velocity.x < -.1f)
-        {
             transform.localRotation = Quaternion.Euler(0, 180, 0);
-        }
     }
 
-    private void JUMP()//跳跃
+    private void JUMP()
     {
         isFalling = playerRb.velocity.y < 0;
-
         if (Input.GetButtonDown("Jump") && inground)
         {
-            //isGliding = false;
             playerRb.gravityScale = 6;
             playerRb.velocity = new Vector2(playerRb.velocity.x, speedjump);
             jumptrue = true;
         }
 
-        // 上升→跳跃动画，下降→下落动画
         if (playerRb.velocity.y > 0.1f && !inground)
             jumptrue = true;
         else if (playerRb.velocity.y <= 0 && !inground)
-        {
             jumptrue = false;
-        }
 
         if (inground)
             jumptrue = false;
@@ -240,25 +315,19 @@ public class player : MonoBehaviour
 
     private void FixedupdateCheck()
     {
-        inground = Physics2D.OverlapCircle(feet.position/*获取feet的点*/, .01f/*范围*/, ground/*图层*/);
+        inground = Physics2D.OverlapCircle(feet.position, .01f, ground);
     }
 
-    public void dash()//用于实现冲刺实现后带入移动
+    public void dash()
     {
         float input = Input.GetAxisRaw("Horizontal");
-
         if (Input.GetKeyDown(KeyCode.LeftShift) && !isDashing && cooldownTimer <= 0 && Mathf.Abs(input) > 0.1f)
         {
             isDashing = true;
             dashtrue = true;
             dashTimer = dashTime;
             cooldownTimer = dashCooldown;
-
-            if (Mathf.Abs(input) > 0.1f)
-                dashDir = input > 0 ? 1 : -1;
-            else
-                dashDir = transform.localScale.x > 0 ? 1 : -1;
-
+            dashDir = input > 0 ? 1 : -1;
             playerRb.gravityScale = 0;
         }
 
@@ -266,7 +335,6 @@ public class player : MonoBehaviour
         {
             playerRb.velocity = new Vector2(dashDir * dashSpeed, 0);
             dashTimer -= Time.deltaTime;
-
             if (dashTimer <= 0)
             {
                 isDashing = false;
@@ -277,31 +345,29 @@ public class player : MonoBehaviour
         }
     }
 
-    public void IgnoreLayer()//穿越平台用代码
+    public void IgnoreLayer()
     {
         if (Input.GetKeyDown(KeyCode.S) || Input.GetButtonDown("Jump"))
         {
             Physics2D.IgnoreLayerCollision(playerLayer, platformLayerIndex, true);
-            StartCoroutine(RestoreAfterTimer());//启用携程
+            StartCoroutine(RestoreAfterTimer());
         }
     }
 
-    public void Attacking()//攻击用目前占位但是已做等待动画完善
+    public void Attacking()
     {
         if (hackingMode || controlsDisabled || attackLocked) return;
-
         if (attackGuardTimer > 0)
         {
             attackGuardTimer -= Time.deltaTime;
             return;
         }
-
         if (Input.GetButtonDown("Fire1") && !attack && !isDashing)
         {
             attack = true;
             attacktrue = true;
             attackLocked = true;
-            playerRb.velocity = new Vector2(0, playerRb.velocity.y);   // 停住水平滑动
+            playerRb.velocity = new Vector2(0, playerRb.velocity.y);
             StartCoroutine(AttackUnlock());
         }
     }
@@ -312,18 +378,17 @@ public class player : MonoBehaviour
         attackLocked = false;
     }
 
-    public void AttackEnd()//攻击结束
+    public void AttackEnd()
     {
         attack = false;
         attacktrue = false;
-        controlsDisabled = false;    // 动画结束彻底释放
+        controlsDisabled = false;
         attackGuardTimer = 0.1f;
     }
 
-    public void Defense()//防御占位
+    public void Defense()
     {
         if (hackingMode || isDashing) return;
-
         if (Input.GetMouseButtonDown(1))
         {
             isBlocking = true;
@@ -332,30 +397,27 @@ public class player : MonoBehaviour
             defensedowntrue = false;
             StartCoroutine(PerfectWindowTimer());
         }
-
         if (Input.GetMouseButtonUp(1))
         {
             isBlocking = false;
             perfectActive = false;
             defensedowntrue = true;
-            // dfstrue 先不动，等放下动画播完再关
             StartCoroutine(DefenseDownTimer());
         }
     }
+
     IEnumerator DefenseDownTimer()
     {
-        yield return new WaitForSeconds(0.3f);  // 放下动画长度
+        yield return new WaitForSeconds(0.3f);
         dfstrue = false;
         defensedowntrue = false;
     }
 
     public void Hacker()
     {
-        // 冷却倒计时
         if (hackCooldownTimer > 0)
         {
             hackCooldownTimer -= Time.unscaledDeltaTime;
-
             if (hackCooldownText != null)
             {
                 if (hackCooldownTimer > 0)
@@ -365,26 +427,22 @@ public class player : MonoBehaviour
             }
         }
 
-        // 按 C 进入
         if (Input.GetKeyDown(KeyCode.C))
         {
             if (!hackingMode && hackCooldownTimer <= 0)
                 EnterHackMode();
         }
 
-        // ESC 退出
         if (hackingMode && Input.GetKeyDown(KeyCode.Escape))
         {
             ExitHackMode(1f);
         }
 
-        // 黑入中倒计时
         if (hackingMode)
         {
             hackTimer -= Time.unscaledDeltaTime;
             if (hackTimerText != null)
                 hackTimerText.text = Mathf.CeilToInt(hackTimer).ToString();
-
             if (hackTimer <= 0)
                 ExitHackMode(1f);
         }
@@ -395,16 +453,11 @@ public class player : MonoBehaviour
         hackingMode = true;
         hackTimer = hackMaxDuration;
         Time.timeScale = hackSlowTime;
-        Debug.Log("hackOverlay = " + (hackOverlay != null));
-        Time.fixedDeltaTime = 0.02f * Time.timeScale;   // ← 物理也跟着慢
+        Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
         if (hackTimerText != null) hackTimerText.text = Mathf.CeilToInt(hackTimer).ToString();
         if (hackCooldownText != null) hackCooldownText.text = "";
-
-        if (hackOverlay != null)
-        {
-            hackOverlay.SetActive(true);
-        }
+        if (hackOverlay != null) hackOverlay.SetActive(true);
 
         bossenemy[] enemies = FindObjectsOfType<bossenemy>();
         foreach (bossenemy e in enemies)
@@ -415,6 +468,7 @@ public class player : MonoBehaviour
                 hackedTargets.Add(e);
             }
         }
+
         FallingBullet[] bullets = FindObjectsOfType<FallingBullet>();
         foreach (FallingBullet b in bullets)
         {
@@ -424,16 +478,13 @@ public class player : MonoBehaviour
                 hackedBullets.Add(b);
             }
         }
-        // 搜索传送门并高亮
+
         Portal[] portals = FindObjectsOfType<Portal>();
-        foreach (Portal p in portals)
-        {
-            p.SetForHack(true);
-        }
+        foreach (Portal p in portals) p.SetForHack(true);
 
         Cover[] covers = FindObjectsOfType<Cover>();
-        foreach (Cover c in covers)
-            c.SetForHack(true);
+        foreach (Cover c in covers) c.SetForHack(true);
+
         Boss2Missile[] boss2Missiles = FindObjectsOfType<Boss2Missile>();
         foreach (Boss2Missile m in boss2Missiles)
         {
@@ -443,26 +494,21 @@ public class player : MonoBehaviour
                 hackedBoss2Missiles.Add(m);
             }
         }
+
         TrapControl[] traps = FindObjectsOfType<TrapControl>();
-        foreach (TrapControl t in traps)
-            t.SetForHack(true);
+        foreach (TrapControl t in traps) t.SetForHack(true);
+
         ZoneController[] zones = FindObjectsOfType<ZoneController>();
-        foreach (ZoneController z in zones)
-            z.SetForHack(true);
+        foreach (ZoneController z in zones) z.SetForHack(true);
+
         if (sr != null) sr.color = new Color(0f, 1f, 1f);
     }
 
-    /// <summary>
-    /// 由小兵点击或按 E 调用。黑入成功后 5 秒冷却。
-    /// </summary>
     public void HackEnemy(bossenemy target)
     {
         if (!hackingMode || target == null || target.isHacked) return;
-
         boss1ai boss = FindObjectOfType<boss1ai>();
-        if (boss != null)
-            target.GetHacked(boss.transform);
-
+        if (boss != null) target.GetHacked(boss.transform);
         IncrementHackCount();
         ExitHackMode(5f);
     }
@@ -470,11 +516,8 @@ public class player : MonoBehaviour
     public void HackBullet(FallingBullet target)
     {
         if (!hackingMode || target == null || target.isHacked) return;
-
         boss1ai bossAI = FindObjectOfType<boss1ai>();
-        if (bossAI != null)
-            target.GetHacked(bossAI.transform);
-
+        if (bossAI != null) target.GetHacked(bossAI.transform);
         IncrementHackCount();
         ExitHackMode(5f);
     }
@@ -483,9 +526,10 @@ public class player : MonoBehaviour
     {
         hackingMode = false;
         hackCooldownTimer = cooldown;
-        attackGuardTimer = 0.1f;   // ← 加这行，挡住同一帧的点击
+        attackGuardTimer = 0.1f;
         Time.timeScale = 1f;
-        Time.fixedDeltaTime = 0.02f;   // ← 恢复默认
+        Time.fixedDeltaTime = 0.02f;
+
         if (hackOverlay != null) hackOverlay.SetActive(false);
         if (hackTimerText != null) hackTimerText.text = "";
 
@@ -494,43 +538,41 @@ public class player : MonoBehaviour
             if (e != null) e.SetHighlight(false);
         }
         hackedTargets.Clear();
+
         foreach (FallingBullet b in hackedBullets)
         {
             if (b != null) b.SetHighlight(false);
         }
+        hackedBullets.Clear();
+
         Portal[] portals = FindObjectsOfType<Portal>();
-        foreach (Portal p in portals)
-        {
-            p.SetForHack(false);
-        }
+        foreach (Portal p in portals) p.SetForHack(false);
+
         Cover[] covers = FindObjectsOfType<Cover>();
-        foreach (Cover c in covers)
-            c.SetForHack(false);
+        foreach (Cover c in covers) c.SetForHack(false);
+
         foreach (Boss2Missile m in hackedBoss2Missiles)
         {
             if (m != null) m.SetHighlight(false);
         }
-        TrapControl[] traps = FindObjectsOfType<TrapControl>();
-        foreach (TrapControl t in traps)
-            t.SetForHack(false);
-        ZoneController[] zones = FindObjectsOfType<ZoneController>();
-        foreach (ZoneController z in zones)
-            z.SetForHack(false);
         hackedBoss2Missiles.Clear();
-        hackedBullets.Clear();
+
+        TrapControl[] traps = FindObjectsOfType<TrapControl>();
+        foreach (TrapControl t in traps) t.SetForHack(false);
+
+        ZoneController[] zones = FindObjectsOfType<ZoneController>();
+        foreach (ZoneController z in zones) z.SetForHack(false);
+
         if (sr != null) sr.color = Color.white;
     }
 
-    /// <summary>
-    /// Boss 反制调用，强制退出黑入并设冷却。
-    /// </summary>
     public void ForceExitHackMode(float cooldown)
     {
         if (!hackingMode) return;
         ExitHackMode(cooldown);
     }
 
-    private void SwitchAnim()//动画判定
+    private void SwitchAnim()
     {
         anim.SetBool("attacktrue", attacktrue);
         anim.SetBool("dfstrue", dfstrue);
@@ -543,19 +585,15 @@ public class player : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        if (isInvincible) return;  // 无敌中，不受伤害
-
+        if (isInvincible) return;
         health -= damage;
         StartCoroutine(InvincibilityRoutine());
-
         if (health <= 0)
         {
             controlsDisabled = true;
-
             if (deathObject1 != null) deathObject1.SetActive(true);
             if (deathObject2 != null) deathObject2.SetActive(true);
 
-            // 清空所有动画状态
             attacktrue = false;
             dfstrue = false;
             defensedowntrue = false;
@@ -569,7 +607,6 @@ public class player : MonoBehaviour
             anim.SetBool("jumptrue", false);
             anim.SetBool("dashtrue", false);
             anim.SetFloat("runfloat", 0f);
-
             anim.SetTrigger("dietrue");
         }
     }
@@ -579,57 +616,43 @@ public class player : MonoBehaviour
         GameManager.Instance?.OnPlayerDied();
     }
 
-    /// <summary>
-    /// 触发无敌（完美格挡后由武器/子弹调用）。
-    /// </summary>
     public void ActivateInvincibility()
     {
         if (!isInvincible)
             StartCoroutine(InvincibilityRoutine());
     }
 
-    // ==================== 算力系统 ====================
-
-    /// <summary>boss2 激活时启用算力系统（由 boss2 调用）</summary>
     public void EnableCyberSystem()
     {
         cyberSystemEnabled = true;
-        // 最大值减去黑入次数
-        currentCyberPower = maxCyberPower - hackCount*2;
+        currentCyberPower = maxCyberPower - hackCount * 2;
         if (currentCyberPower < 0) currentCyberPower = 0;
         UpdateCyberUI();
     }
 
-    /// <summary>每次黑入成功 +1（武器/小兵/飞弹黑入成功后调用）</summary>
     public void IncrementHackCount()
     {
         hackCount++;
     }
 
-    /// <summary>黑入到传送门：扣除算力激活</summary>
     public void TryActivatePortal(Portal portal)
     {
         if (!hackingMode || portal == null) return;
-
         if (currentCyberPower < portalActivationCost)
         {
             Debug.Log("算力不足！");
             return;
         }
-
         currentCyberPower -= portalActivationCost;
         portal.Activate();
         UpdateCyberUI();
         Debug.Log("传送门已激活！剩余算力：" + currentCyberPower);
-
-        ExitHackMode(5f);   // ← 加这行
+        ExitHackMode(5f);
     }
 
     public void TryActivateTrap(TrapControl trap)
     {
         if (!hackingMode || trap == null) return;
-
-        // 教程陷阱不消耗算力、不加计数
         if (!trap.isTutorial)
         {
             if (!cyberSystemEnabled)
@@ -637,37 +660,32 @@ public class player : MonoBehaviour
                 Debug.Log("算力系统未启用！");
                 return;
             }
-
             if (currentCyberPower < trapActivationCost)
             {
                 Debug.Log("算力不足！");
                 return;
             }
-
             currentCyberPower -= trapActivationCost;
             UpdateCyberUI();
             IncrementHackCount();
         }
-
         trap.Activate();
-        ExitHackMode(5f);   // 教程也退出黑入 + 冷却
+        ExitHackMode(5f);
     }
 
     public void TryActivateZone(ZoneController zone)
     {
         if (!hackingMode || zone == null) return;
-
         IncrementHackCount();
         zone.Activate();
         ExitHackMode(5f);
     }
-    /// <summary>可否传送（冷却检查）</summary>
+
     public bool CanTeleport()
     {
         return teleportCooldownTimer <= 0;
     }
 
-    /// <summary>完成传送，启动冷却</summary>
     public void OnTeleported()
     {
         teleportCooldownTimer = teleportCooldown;
@@ -682,60 +700,49 @@ public class player : MonoBehaviour
     public void TryActivateCover(Cover cover)
     {
         if (!hackingMode || cover == null) return;
-
         if (!cyberSystemEnabled)
         {
             Debug.Log("算力系统未启用！");
             return;
         }
-
         if (currentCyberPower < coverActivationCost)
         {
             Debug.Log("算力不足！");
             return;
         }
-
         currentCyberPower -= coverActivationCost;
         cover.Activate();
         UpdateCyberUI();
         Debug.Log("掩体已激活！剩余算力：" + currentCyberPower);
-
         ExitHackMode(5f);
     }
 
     public void TryHackBoss2Missile(Boss2Missile missile)
     {
         if (!hackingMode || missile == null || missile.isHacked) return;
-
         if (!cyberSystemEnabled)
         {
             Debug.Log("算力系统未启用！");
             return;
         }
-
         if (currentCyberPower < boss2MissileHackCost)
         {
             Debug.Log("算力不足！");
             return;
         }
-
         currentCyberPower -= boss2MissileHackCost;
         missile.GetHacked();
         UpdateCyberUI();
         Debug.Log("导弹已黑入！剩余算力：" + currentCyberPower);
-
         ExitHackMode(5f);
     }
 
-    /// <summary>boss2 死亡演出后调用</summary>
     public void DeliverFinalBlow(Transform boss, int ending)
     {
         isKnockedBack = true;
-
         float facing = transform.position.x > boss.position.x ? 1f : -1f;
         Vector2 dir = new Vector2(facing, 0.8f);
         playerRb.velocity = dir * finalBlowKnockbackForce;
-
         StartCoroutine(FinalBlowRoutine(boss, ending));
     }
 
@@ -743,35 +750,18 @@ public class player : MonoBehaviour
     {
         yield return new WaitForSeconds(finalBlowKnockbackDuration);
         isKnockedBack = false;
-
         boss2ai b2 = boss.GetComponent<boss2ai>();
         if (b2 != null) b2.FinalDeath();
-
         SceneGate gate = FindObjectOfType<SceneGate>();
         if (gate != null) gate.TriggerEnding(ending);
     }
 
-    void PlayEndingTimeline(int ending)
-    {
-        // 去 Hierarchy 里找对应的 Timeline 物体
-        string timelineName = ending == 1 ? "Ending1_Timeline" : "Ending2_Timeline";
-        Debug.Log("播放结局 " + ending + " → " + timelineName);
-
-        // TODO：用 Timeline 播放
-        // GameObject tlObj = GameObject.Find(timelineName);
-        // if (tlObj != null) tlObj.GetComponent<PlayableDirector>().Play();
-    }
-
-    public int GetCurrentCyberPower() => currentCyberPower;
-
-    IEnumerator InvincibilityRoutine()//无敌触发
+    IEnumerator InvincibilityRoutine()
     {
         isInvincible = true;
-
-        // 忽略所有敌方图层的碰撞
         for (int i = 0; i < 32; i++)
         {
-            if ((enemyLayers & (1 << i)) != 0)
+            if ((enemyLayers.value & (1 << i)) != 0)
                 Physics2D.IgnoreLayerCollision(playerLayer, i, true);
         }
 
@@ -783,25 +773,60 @@ public class player : MonoBehaviour
         }
 
         sr.enabled = true;
-
         for (int i = 0; i < 32; i++)
         {
-            if ((enemyLayers & (1 << i)) != 0)
+            if ((enemyLayers.value & (1 << i)) != 0)
                 Physics2D.IgnoreLayerCollision(playerLayer, i, false);
         }
-
         isInvincible = false;
     }
 
-    IEnumerator RestoreAfterTimer()//穿越平台用协程
+    IEnumerator RestoreAfterTimer()
     {
         yield return new WaitForSeconds(Stime);
         Physics2D.IgnoreLayerCollision(playerLayer, platformLayerIndex, false);
     }
 
-    IEnumerator PerfectWindowTimer()//防御用协程1
+    IEnumerator PerfectWindowTimer()
     {
         yield return new WaitForSeconds(perfectWindow);
-        perfectActive = false;  // 完美窗口关闭，进入普通格挡
+        perfectActive = false;
+    }
+
+    public void StartRoomTransition(float moveDirection)
+    {
+        if (isDashing)
+        {
+            isDashing = false;
+            dashtrue = false;
+            playerRb.gravityScale = 3f;
+        }
+
+        isInRoomTransition = true;
+        controlsDisabled = true;
+        transitionHorizontalSpeed = moveDirection * speed;
+
+        for (int i = 0; i < 32; i++)
+        {
+            if ((ground.value & (1 << i)) != 0 || i == platformLayerIndex)
+                continue;
+            Physics2D.IgnoreLayerCollision(playerLayer, i, true);
+        }
+    }
+
+    public void EndRoomTransition()
+    {
+        isInRoomTransition = false;
+        controlsDisabled = false;
+
+        for (int i = 0; i < 32; i++)
+        {
+            if ((ground.value & (1 << i)) != 0 || i == platformLayerIndex)
+                continue;
+            Physics2D.IgnoreLayerCollision(playerLayer, i, false);
+        }
+
+        if (playerRb != null)
+            playerRb.velocity = Vector2.zero;
     }
 }

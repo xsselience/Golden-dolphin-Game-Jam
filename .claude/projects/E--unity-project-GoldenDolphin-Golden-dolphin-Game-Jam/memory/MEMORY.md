@@ -1,0 +1,1 @@
+- [CLAUDE.md 约束规则](claude-md-constraints.md) — 已采纳项目根 CLAUDE.md 的全部限制规则，禁止循环自检、禁止反复修复。
