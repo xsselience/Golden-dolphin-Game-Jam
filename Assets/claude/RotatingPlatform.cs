@@ -1,0 +1,224 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// 旋转平台 - 围绕固定旋转中心做圆周运动
+/// 平台倾斜角度过大时玩家会自动滑落
+/// 可在Inspector面板设置旋转中心、速度、方向、是否保持水平等参数
+/// </summary>
+public class RotatingPlatform : MonoBehaviour
+{
+    [Header("【旋转中心参考物】拖入一个GameObject作为旋转中心（优先使用），留空则使用下方的世界坐标")]
+    [SerializeField] private Transform _pivotTransform;
+
+    [Header("【旋转中心世界坐标】当上方参考物为空时生效")]
+    [SerializeField] private Vector2 _pivotWorldPosition;
+
+    [Header("【旋转速度】每秒旋转的度数")]
+    [SerializeField] private float _rotationSpeed = 30f;
+
+    [Header("【顺时针旋转】true=顺时针, false=逆时针")]
+    [SerializeField] private bool _clockwise = true;
+
+    [Header("【保持水平】勾选后平台始终水平（像摩天轮车厢），不勾选则随旋转倾斜")]
+    [SerializeField] private bool _maintainHorizontal = false;
+
+    [Header("【滑落角度阈值】平台倾斜超过此角度时玩家滑落（仅非保持水平模式生效）")]
+    [SerializeField] private float _slideAngleThreshold = 35f;
+
+    [Header("【滑落力度】玩家滑落时的水平推力大小")]
+    [SerializeField] private float _slideForce = 5f;
+
+    private Rigidbody2D _rb;
+    private float _currentAngle;              // 当前角度（弧度制 → 用角度存储，计算时转换）
+    private float _radius;                    // 旋转半径
+    private Vector2 _lastFrameDelta;          // 本帧位移（用于同步骑手）
+    private Vector2 _effectivePivot;          // 实际使用的旋转中心
+
+    // 骑手列表
+    private List<RiderEntry> _riders = new List<RiderEntry>();
+
+    private struct RiderEntry
+    {
+        public Transform transform;
+        public Rigidbody2D rb;
+    }
+
+    void Start()
+    {
+        // 确定旋转中心
+        _effectivePivot = (_pivotTransform != null)
+            ? (Vector2)_pivotTransform.position
+            : _pivotWorldPosition;
+
+        // 初始化刚体（Kinematic模式，不响应物理力）
+        _rb = GetComponent<Rigidbody2D>();
+        if (_rb == null)
+            _rb = gameObject.AddComponent<Rigidbody2D>();
+        _rb.bodyType = RigidbodyType2D.Kinematic;
+        _rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+        // 根据初始位置计算旋转半径和起始角度
+        _radius = Vector2.Distance(transform.position, _effectivePivot);
+        Vector2 startDir = (Vector2)transform.position - _effectivePivot;
+        _currentAngle = Mathf.Atan2(startDir.y, startDir.x) * Mathf.Rad2Deg;
+    }
+
+    void FixedUpdate()
+    {
+        // 更新时间角度
+        float dirSign = _clockwise ? -1f : 1f;
+        _currentAngle += _rotationSpeed * Time.fixedDeltaTime * dirSign;
+
+        // 计算圆周上的新位置
+        float rad = _currentAngle * Mathf.Deg2Rad;
+        Vector2 newPos = _effectivePivot + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * _radius;
+
+        Vector2 beforeMove = _rb.position;
+        _rb.MovePosition(newPos);
+
+        // 平台自身旋转：不保持水平时，平台表面始终朝旋转中心外侧
+        if (!_maintainHorizontal)
+        {
+            float platformAngle = _currentAngle - 90f;
+            _rb.MoveRotation(platformAngle);
+        }
+        else
+        {
+            // 保持水平：始终不旋转
+            _rb.MoveRotation(0f);
+        }
+
+        _lastFrameDelta = _rb.position - beforeMove;
+    }
+
+    void LateUpdate()
+    {
+        for (int i = _riders.Count - 1; i >= 0; i--)
+        {
+            RiderEntry rider = _riders[i];
+            if (rider.transform == null)
+            {
+                _riders.RemoveAt(i);
+                continue;
+            }
+
+            // 计算平台当前倾斜角度（与水平面的夹角）
+            float platformTilt = _maintainHorizontal
+                ? 0f
+                : Vector2.Angle(transform.up, Vector2.up);
+
+            // 超出滑落阈值 → 给骑手施加滑落力并移出列表
+            if (platformTilt > _slideAngleThreshold)
+            {
+                if (rider.rb != null && !rider.rb.isKinematic)
+                {
+                    // 滑落方向：平台右边低于左边时向右滑，反之向左滑
+                    float slideDir = -transform.right.y;
+                    if (Mathf.Abs(slideDir) < 0.1f)
+                        slideDir = 1f; // 几乎垂直时默认向右滑
+                    slideDir = Mathf.Sign(slideDir);
+
+                    // 重置速度并施加滑落推力
+                    rider.rb.velocity = new Vector2(slideDir * _slideForce, rider.rb.velocity.y);
+                }
+                _riders.RemoveAt(i);
+                continue;
+            }
+
+            // 安全倾斜范围内 → 骑手跟随平台移动
+            if (rider.rb != null)
+                rider.rb.MovePosition(rider.rb.position + _lastFrameDelta);
+            else
+                rider.transform.Translate(_lastFrameDelta);
+        }
+    }
+
+    #region 碰撞事件 - 骑手管理
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (IsStandingOnTop(collision))
+            TryAddRider(collision.transform);
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (IsStandingOnTop(collision))
+            TryAddRider(collision.transform);
+    }
+
+    void OnCollisionExit2D(Collision2D collision)
+    {
+        RemoveRider(collision.transform);
+    }
+
+    private void TryAddRider(Transform t)
+    {
+        if (RiderExists(t)) return;
+        Rigidbody2D riderRb = t.GetComponent<Rigidbody2D>();
+        _riders.Add(new RiderEntry { transform = t, rb = riderRb });
+    }
+
+    private void RemoveRider(Transform t)
+    {
+        _riders.RemoveAll(r => r.transform == t);
+    }
+
+    private bool RiderExists(Transform t)
+    {
+        for (int i = 0; i < _riders.Count; i++)
+            if (_riders[i].transform == t) return true;
+        return false;
+    }
+
+    /// <summary>
+    /// 判断碰撞体是否站在平台上方（接触法线朝上）
+    /// </summary>
+    private bool IsStandingOnTop(Collision2D collision)
+    {
+        foreach (ContactPoint2D contact in collision.contacts)
+        {
+            if (contact.normal.y > 0.5f)
+                return true;
+        }
+        return false;
+    }
+
+    #endregion
+
+    #region Scene视图调试绘制
+
+    void OnDrawGizmosSelected()
+    {
+        Vector2 pivot = (_pivotTransform != null)
+            ? (Vector2)_pivotTransform.position
+            : _pivotWorldPosition;
+
+        // 旋转中心点
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(pivot, 0.25f);
+        Gizmos.DrawLine(pivot, transform.position);
+
+        // 旋转路径圆
+        float r = Application.isPlaying
+            ? _radius
+            : Vector2.Distance(transform.position, pivot);
+        DrawCircle(pivot, r, 36);
+    }
+
+    private void DrawCircle(Vector2 center, float radius, int segments)
+    {
+        float step = 360f / segments;
+        Vector2 prev = center + Vector2.right * radius;
+        for (int i = 1; i <= segments; i++)
+        {
+            float rad = i * step * Mathf.Deg2Rad;
+            Vector2 pt = center + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * radius;
+            Gizmos.DrawLine(prev, pt);
+            prev = pt;
+        }
+    }
+
+    #endregion
+}

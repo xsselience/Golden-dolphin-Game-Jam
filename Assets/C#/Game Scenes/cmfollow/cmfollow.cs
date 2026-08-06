@@ -6,7 +6,6 @@ public class cmfollow : MonoBehaviour
 {
     public Transform target;
     public float smoothing;
-    // Start is called before the first frame update
 
     void Start()
     {
@@ -19,12 +18,12 @@ public class cmfollow : MonoBehaviour
             FindPlayer();
             return;
         }
-        if (target != null)//镜头跟随代码
+        if (target != null)
         {
             if (transform.position != target.position)
             {
                 Vector3 targetPos = target.position;
-                targetPos.z = transform.position.z;   // ← 锁死 Z 轴，不跟玩家
+                targetPos.z = transform.position.z;
                 transform.position = Vector3.Lerp(transform.position, targetPos, smoothing);
             }
         }
@@ -35,5 +34,4 @@ public class cmfollow : MonoBehaviour
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) target = p.transform;
     }
-
 }
