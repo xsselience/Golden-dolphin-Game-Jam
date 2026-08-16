@@ -8,11 +8,9 @@ public class player : MonoBehaviour
     private Rigidbody2D playerRb;
     private Transform playertrans;
 
-    [Header("原地探头查看（相机左右上下偷看）")]
-    private float holdHorizontalTimer;
-    private float holdVerticalTimer;
-    private float lastHInput;
-    private float lastVInput;
+    [Header("原地探头查看（相机上下查看）")]
+    private float peekHoldTimer;   //探头长按计时器
+    public float peekRequiredHoldTime = 1f; // 需要长按1秒才激活探头
 
     [Header("移动使用组件")]
     public float speed;
@@ -22,7 +20,7 @@ public class player : MonoBehaviour
     public float speedjump;
     private bool injump;
     private bool isFalling;
-    private bool inground; // 修复：补充地面检测变量声明
+    private bool inground; // 地面检测变量
     public Transform feet;
     public LayerMask ground;
 
@@ -155,13 +153,11 @@ public class player : MonoBehaviour
     {
         // 普通控制禁用状态下直接返回（传送过渡除外）
         if (controlsDisabled && !isInRoomTransition) return;
-
         // 传送过渡状态下，只执行检测和动画，不响应输入
         if (!isInRoomTransition)
         {
             if (teleportCooldownTimer > 0)
                 teleportCooldownTimer -= Time.unscaledDeltaTime;
-
             Hacker();
             Attacking();
             dash();
@@ -169,11 +165,9 @@ public class player : MonoBehaviour
             IgnoreLayer();
             Defense();
         }
-
         // 无论是否禁用控制，都执行地面检测和动画切换
         FixedupdateCheck();
         SwitchAnim();
-
         // 传送过渡时，单独处理朝向和动画参数
         if (isInRoomTransition)
         {
@@ -181,68 +175,42 @@ public class player : MonoBehaviour
                 transform.localRotation = Quaternion.Euler(0, 0, 0);
             else if (transitionHorizontalSpeed < -0.1f)
                 transform.localRotation = Quaternion.Euler(0, 180, 0);
+            runfloat = Mathf.Abs(transitionHorizontalSpeed) / speed;
+        }
 
-            runfloat = Mathf.Abs(transitionHorizontalSpeed) / speed;
-        }
-        if (isInRoomTransition)
-        {
-            if (transitionHorizontalSpeed > 0.1f)
-                transform.localRotation = Quaternion.Euler(0, 0, 0);
-            else if (transitionHorizontalSpeed < -0.1f)
-                transform.localRotation = Quaternion.Euler(0, 180, 0);
-            runfloat = Mathf.Abs(transitionHorizontalSpeed) / speed;
-        }
-        // ========== 原地长按探头查看逻辑 新增开始 ==========
-        // 禁用控制/冲刺/受伤/房间传送时直接取消探头
+        // ========== 探头逻辑：W/S长按1秒后触发上下探头 ==========
         bool peekBlocked = controlsDisabled || isDashing || isKnockedBack || isInRoomTransition;
-        bool peekHoldKey = Input.GetKey(KeyCode.V); // 按住V才开启探头模式
-        float hInput = Input.GetAxisRaw("Horizontal");
-        float vInput = Input.GetAxisRaw("Vertical");
-        bool playerStandStill = Mathf.Abs(playerRb.velocity.x) < 0.05f;
+        bool wHold = Input.GetKey(KeyCode.W);
+        bool sHold = Input.GetKey(KeyCode.S);
 
-        // 水平长按计时
-        if (!peekBlocked && peekHoldKey && hInput != 0 && playerStandStill)
-        {
-            if (Mathf.Sign(hInput) == Mathf.Sign(lastHInput))
-                holdHorizontalTimer += Time.deltaTime;
-            else
-                holdHorizontalTimer = 0;
-        }
-        else
-        {
-            holdHorizontalTimer = 0;
-        }
-
-        // 垂直长按计时
-        if (!peekBlocked && peekHoldKey && vInput != 0 && playerStandStill)
-        {
-            if (Mathf.Sign(vInput) == Mathf.Sign(lastVInput))
-                holdVerticalTimer += Time.deltaTime;
-            else
-                holdVerticalTimer = 0;
-        }
-        else
-        {
-            holdVerticalTimer = 0;
-        }
-
-        lastHInput = hInput;
-        lastVInput = vInput;
-
-        // 计算探头偏移方向
         Vector2 peekDir = Vector2.zero;
-        float needHoldTime = CameraZoneManager.Instance.peekHoldTime;
-        if (holdHorizontalTimer >= needHoldTime)
-            peekDir.x = Mathf.Sign(hInput);
-        if (holdVerticalTimer >= needHoldTime)
-            peekDir.y = Mathf.Sign(vInput);
 
-        // 发送给相机管理器
-        if (peekDir != Vector2.zero && !peekBlocked)
-            CameraZoneManager.Instance.SetPeekDirection(peekDir);
+        if (!peekBlocked && (wHold || sHold))
+        {
+            peekHoldTimer += Time.deltaTime;
+
+            //长按时间达到1秒
+            if (peekHoldTimer >= peekRequiredHoldTime)
+            {
+                if (wHold) peekDir = new Vector2(0f, 1f);
+                else if (sHold) peekDir = new Vector2(0f, -1f);
+            }
+        }
         else
+        {
+            // 松开按键 / 被阻断：计时器清零，清除探头
+            peekHoldTimer = 0f;
+        }
+
+        if (peekDir != Vector2.zero && !peekBlocked)
+        {
+            //Debug.Log($"探头激活，方向：{peekDir}，已按住时间:{peekHoldTimer:F2}");
+            CameraZoneManager.Instance.SetPeekDirection(peekDir);
+        }
+        else
+        {
             CameraZoneManager.Instance.ClearPeek();
-        // ========== 原地长按探头查看逻辑 新增结束 ==========
+        }
     }
 
     private void FixedUpdate()
