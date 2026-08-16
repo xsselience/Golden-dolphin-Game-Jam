@@ -941,8 +941,11 @@ MonoBehaviour:
   _holdDuration: 0.15
   _fadeInDuration: 0.4
   _doorPairs:
-  - pairId: 
+  - pairId: "\u5E8F\u7AE0\u5230\u5173\u53611"
     doorA: {fileID: 949595238}
+    doorB: {fileID: 1454515804}
+  - pairId: "\u5E8F\u7AE0\u5DE6\u4FA7\u9690\u85CF\u623F"
+    doorA: {fileID: 2140324170}
     doorB: {fileID: 1454515804}
   _debugLog: 1
 --- !u!4 &91252160
@@ -2831,7 +2834,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 14
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -8618,6 +8621,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   virtualCamera: {fileID: 0}
   autoFindCamera: 1
+  autoDetectPlayerZone: 1
+  zoneCheckInterval: 0.3
   fadeImage: {fileID: 39504971}
   fadeOutDuration: 0.5
   holdDuration: 0.2
@@ -8630,9 +8635,9 @@ MonoBehaviour:
   debugLog: 1
   _showMainCameraBounds: 1
   _cameraBoundsColor: {r: 0, g: 1, b: 0, a: 0.5}
-  peekHoldTime: 2
-  peekOffsetAmount: 0.25
-  peekSmoothSpeed: 5
+  peekHoldTime: 0.5
+  peekOffsetAmount: 0.4
+  peekSmoothSpeed: 10
 --- !u!4 &1011721783
 Transform:
   m_ObjectHideFlags: 0
@@ -11216,6 +11221,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 8488587252727964699, guid: a1e861ebc2bfade4b99d1686e6a82964, type: 3}
+      propertyPath: peekRequiredHoldTime
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -11232,6 +11241,7 @@ GameObject:
   - component: {fileID: 1302662671}
   - component: {fileID: 1302662670}
   - component: {fileID: 1302662672}
+  - component: {fileID: 1302662673}
   m_Layer: 0
   m_Name: cinema Camera
   m_TagString: Untagged
@@ -11261,7 +11271,7 @@ MonoBehaviour:
   m_Follow: {fileID: 634753491}
   m_Lens:
     FieldOfView: 60
-    OrthographicSize: 10
+    OrthographicSize: 14
     NearClipPlane: 0.3
     FarClipPlane: 1000
     Dutch: 0
@@ -11310,6 +11320,21 @@ MonoBehaviour:
   m_Damping: 0.5
   m_MaxWindowSize: -1
   m_Padding: 0
+--- !u!114 &1302662673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1302662669}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 082d6e9c8af7c6d4d8438a42f8a608d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  designWidth: 1920
+  designHeight: 1080
+  enableDebugLog: 1
 --- !u!1 &1310572598
 GameObject:
   m_ObjectHideFlags: 0
@@ -12367,10 +12392,10 @@ PolygonCollider2D:
   m_Points:
     m_Paths:
     - - {x: -24.504734, y: 18.102816}
-      - {x: -46.863113, y: 18.203104}
-      - {x: -46.180775, y: -3.516861}
-      - {x: -46.43408, y: -10.454638}
-      - {x: -45.816067, y: -20.9608}
+      - {x: -63.730404, y: 18.86027}
+      - {x: -63.705227, y: -2.6406422}
+      - {x: -63.30137, y: -8.7021885}
+      - {x: -63.778637, y: -20.9608}
       - {x: -27.296701, y: -20.148209}
       - {x: -17.261467, y: -20.236315}
       - {x: -4.9514008, y: -19.855183}
@@ -16807,10 +16832,10 @@ PolygonCollider2D:
   m_Points:
     m_Paths:
     - - {x: -24.504734, y: 18.102816}
-      - {x: -52.764683, y: 17.962431}
-      - {x: -52.197964, y: -11.83849}
-      - {x: -51.671104, y: -39.867085}
-      - {x: -6.2914486, y: -40.50691}
+      - {x: -62.832485, y: 17.962431}
+      - {x: -62.26576, y: -11.83849}
+      - {x: -62.55744, y: -50.08691}
+      - {x: -6.1051464, y: -50.008377}
       - {x: -6.2071667, y: -33.53992}
       - {x: -6.1672726, y: -7.7705956}
   m_UseDelaunayMesh: 0
@@ -18582,7 +18607,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2140324169}
   - component: {fileID: 2140324168}
-  - component: {fileID: 2140324167}
+  - component: {fileID: 2140324170}
   m_Layer: 0
   m_Name: Gate_02-04
   m_TagString: Untagged
@@ -18590,21 +18615,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2140324167
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2140324166}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e7dccae791e08414b93cf53cd4dacabf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetZoneId: Zone_04
-  targetSpawnPoint: {fileID: 715639146}
-  direction: 1
 --- !u!61 &2140324168
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -18659,12 +18669,29 @@ Transform:
   m_GameObject: {fileID: 2140324166}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -15, y: 39.7, z: -0.124227524}
+  m_LocalPosition: {x: -15, y: 51.9, z: -0.124227524}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2140324170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2140324166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d831989702f00254bbe3d8afe4971b29, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  doorId: Door_02
+  zoneId: Zone_02
+  connectionType: 0
+  _arrivalVelocityX: 3
+  _arrivalVelocityY: 8
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

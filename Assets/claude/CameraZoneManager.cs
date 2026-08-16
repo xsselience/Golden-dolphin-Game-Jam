@@ -10,6 +10,11 @@ public class CameraZoneManager : MonoBehaviour
     [SerializeField] private CinemachineVirtualCamera virtualCamera;
     [SerializeField] private bool autoFindCamera = true;
 
+    [Header("自动房间检测（不用传送门也能切换相机边界）")]
+    public bool autoDetectPlayerZone = true;
+    public float zoneCheckInterval = 0.3f; // 每0.3秒检测一次
+    private float _zoneCheckTimer;
+
     [Header("黑屏过渡")]
     [SerializeField] private Image fadeImage;
     [SerializeField] private float fadeOutDuration = 0.5f;
@@ -32,9 +37,9 @@ public class CameraZoneManager : MonoBehaviour
     [SerializeField] private bool _showMainCameraBounds = true;
     [SerializeField] private Color _cameraBoundsColor = Color.red;
 
-    [Header("原地探头偷看设置")]
-    public float peekHoldTime = 2f;
-    public float peekOffsetAmount = 0.25f;
+    [Header("原地探头设置")]
+    public float peekHoldTime = 0.5f;
+    public float peekOffsetAmount = 0.5f;
     public float peekSmoothSpeed = 5f;
 
     private CinemachineFramingTransposer _framingTransposer;
@@ -50,6 +55,29 @@ public class CameraZoneManager : MonoBehaviour
     private Transform _player;
     private bool _isTransitioning;
 
+
+    /// <summary>自动检测玩家现在处于哪一个CameraZone区域</summary>
+    private CameraZone GetPlayerCurrentZone()
+    {
+        if (_player == null) return null;
+        Vector2 playerPos = _player.position;
+
+        // 只要玩家仍在当前区域内，就保持当前区域不切换。
+        // 这样区域1和区域2重合时，玩家要走完重合区（彻底离开区域1）才会切到区域2。
+        if (_currentZone != null && IsPointInPolygon(playerPos, _currentZone))
+            return _currentZone;
+
+        foreach (var kvp in _zones)
+        {
+            CameraZone zone = kvp.Value;
+            if (zone == null || zone.boundsPolygon == null) continue;
+            if (IsPointInPolygon(playerPos, zone))
+            {
+                return zone;
+            }
+        }
+        return null;
+    }
 
     /// <summary>设置探头偏移方向</summary>
     public void SetPeekDirection(Vector2 dir)
@@ -90,15 +118,41 @@ public class CameraZoneManager : MonoBehaviour
     }
 
     void LateUpdate()
-    {        // 探头视角平滑插值
+    {
+        // 探头视角平滑插值
         if (_framingTransposer != null)
         {
             _currentPeekOffset = Vector2.Lerp(_currentPeekOffset, _targetPeekOffset, Time.deltaTime * peekSmoothSpeed);
             _framingTransposer.m_ScreenX = 0.5f + _currentPeekOffset.x;
             _framingTransposer.m_ScreenY = 0.5f + _currentPeekOffset.y;
         }
-        if (_confiner2D == null || _player == null || _isTransitioning) return;
+
+        if (_confiner2D == null || _player == null || _isTransitioning)
+        {
+            UpdateCameraBoundsGizmo();
+            return;
+        }
+
         CheckAutoUnlock();
+
+        // ==========【新增】玩家位置自动检测房间，不用传送门也切换相机边界 ==========
+        if (autoDetectPlayerZone)
+        {
+            _zoneCheckTimer -= Time.deltaTime;
+            if (_zoneCheckTimer <= 0f)
+            {
+                _zoneCheckTimer = zoneCheckInterval;
+                CameraZone detectedZone = GetPlayerCurrentZone();
+                // 如果检测到的区域 和 当前激活的区域不一样，则切换（走路穿越相邻房间，只平滑切换边界，不黑屏）
+                if (detectedZone != null && detectedZone != _currentZone)
+                {
+                    if (debugLog) Debug.Log($"[CameraZoneManager] 玩家自动进入房间：{detectedZone.zoneDisplayName}");
+                    SwitchToZoneImmediate(detectedZone);
+                }
+            }
+        }
+        // =====================================================================
+
         UpdateCameraBoundsGizmo();
     }
 
@@ -306,8 +360,11 @@ public class CameraZoneManager : MonoBehaviour
     {
         if (_confiner2D == null || zone.boundsPolygon == null) return;
         _confiner2D.m_BoundingShape2D = zone.boundsPolygon;
+        // ⭐关键：必须刷新Confiner缓存，否则新多边形不生效！！
         _confiner2D.InvalidateCache();
     }
+
+    
 
     void CheckAutoUnlock()
     {
@@ -443,4 +500,5 @@ public class CameraZoneManager : MonoBehaviour
         if (_cameraBoundsObj != null)
             Destroy(_cameraBoundsObj);
     }
+
 }
