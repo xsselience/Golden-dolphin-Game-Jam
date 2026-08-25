@@ -20,11 +20,15 @@ public class RotatingPlatform : MonoBehaviour
     [Header("【顺时针旋转】true=顺时针, false=逆时针")]
     [SerializeField] private bool _clockwise = true;
 
-    [Header("【保持水平】勾选后平台始终水平（像摩天轮车厢），不勾选则随旋转倾斜")]
+    [Header("【保持固定倾斜】勾选后平台不随圆周旋转、保持固定角度（像摩天轮车厢），不勾选则随旋转倾斜")]
     [SerializeField] private bool _maintainHorizontal = false;
 
-    [Header("【滑落角度阈值】平台倾斜超过此角度时玩家滑落（仅非保持水平模式生效）")]
-    [SerializeField] private float _slideAngleThreshold = 35f;
+    [Header("【固定倾斜角度】上方勾选时生效：平台固定的角度（度）。0=水平，正数=逆时针倾斜，负数=顺时针倾斜")]
+    [SerializeField] private float _fixedTiltAngle = 0f;
+
+    [Header("【滑落角度阈值】平台倾斜超过此角度时玩家滑落（保持固定倾斜时按固定角度判断）")]
+    [Tooltip("平台倾斜超过此角度时玩家开始滑落。建议与 player.cs 的 groundCheckRadius 可站立角度对齐（约45°），实现“跳不动就开始滑”")]
+    [SerializeField] private float _slideAngleThreshold = 45f;
 
     [Header("【滑落力度】玩家滑落时的水平推力大小")]
     [SerializeField] private float _slideForce = 5f;
@@ -85,8 +89,8 @@ public class RotatingPlatform : MonoBehaviour
         }
         else
         {
-            // 保持水平：始终不旋转
-            _rb.MoveRotation(0f);
+            // 保持固定倾斜（摩天轮车厢式）：始终固定为指定角度，不随圆周旋转
+            _rb.MoveRotation(_fixedTiltAngle);
         }
 
         _lastFrameDelta = _rb.position - beforeMove;
@@ -105,25 +109,26 @@ public class RotatingPlatform : MonoBehaviour
 
             // 计算平台当前倾斜角度（与水平面的夹角）
             float platformTilt = _maintainHorizontal
-                ? 0f
+                ? Mathf.Abs(_fixedTiltAngle)
                 : Vector2.Angle(transform.up, Vector2.up);
 
-            // 超出滑落阈值 → 给骑手施加滑落力并移出列表
+            // 超出滑落阈值 → 持续施加沿斜面向下的滑落力，让玩家滑下
+            // 不立即移出骑手列表，等玩家真正离开平台时由 OnCollisionExit2D 移除
             if (platformTilt > _slideAngleThreshold)
             {
                 if (rider.rb != null && !rider.rb.isKinematic)
                 {
-                    // 滑落方向：平台右边低于左边时向右滑，反之向左滑
-                    float slideDir = -transform.right.y;
-                    if (Mathf.Abs(slideDir) < 0.1f)
-                        slideDir = 1f; // 几乎垂直时默认向右滑
-                    slideDir = Mathf.Sign(slideDir);
+                    // 计算沿斜面向下的方向：把重力方向投影到平台表面
+                    Vector2 down = Vector2.down;
+                    Vector2 surfaceDown = down - Vector2.Dot(down, (Vector2)transform.up) * (Vector2)transform.up;
+                    if (surfaceDown.sqrMagnitude < 0.001f)
+                        surfaceDown = Vector2.down; // 平台几乎水平时兜底，直接向下
+                    surfaceDown.Normalize();
 
-                    // 重置速度并施加滑落推力
-                    rider.rb.velocity = new Vector2(slideDir * _slideForce, rider.rb.velocity.y);
+                    // 施加沿斜面向下的滑落速度（每帧持续生效，直到玩家离开平台）
+                    rider.rb.velocity = surfaceDown * _slideForce;
                 }
-                _riders.RemoveAt(i);
-                continue;
+                continue; // 跳过下方的平台粘连位移，让玩家自由下滑
             }
 
             // 安全倾斜范围内 → 骑手跟随平台移动

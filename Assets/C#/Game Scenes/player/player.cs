@@ -23,6 +23,9 @@ public class player : MonoBehaviour
     private bool inground; // 地面检测变量
     public Transform feet;
     public LayerMask ground;
+    [Header("人物可站立平台倾斜角度调整")]
+    [Tooltip("地面检测半径。数值越大，人物能站在越倾斜的平台上（平台倾斜约45°建议0.15左右）。在面板上调整此值来适配不同倾斜角")]
+    [SerializeField] private float groundCheckRadius = 0.15f;
 
     [Header("攻击使用组件")]
     public bool attack;
@@ -283,7 +286,7 @@ public class player : MonoBehaviour
 
     private void FixedupdateCheck()
     {
-        inground = Physics2D.OverlapCircle(feet.position, .01f, ground);
+        inground = Physics2D.OverlapCircle(feet.position, groundCheckRadius, ground);
     }
 
     public void dash()
