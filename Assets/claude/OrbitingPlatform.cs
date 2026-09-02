@@ -2,12 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 旋转平台 - 围绕固定旋转中心做圆周运动
-/// 平台倾斜角度过大时玩家会自动滑落
-/// 骑手检测采用与 MovingPlatform 一致的射线检测（脚本与碰撞体分离也能正确识别玩家）
-/// 速度通过注入 player.platformVelocity 实现，玩家可跟随平台移动且能自由移动
+/// 公转平台（OrbitingPlatform）—— 平台绕一个旋转中心做圆周运动，但自身始终保持水平（固定倾斜角），
+/// 类似摩天轮车厢：车厢绕中心转圈，但车厢地板始终朝上，玩家站在上面会跟着平台一起移动。
+///
+/// 与 RotatingPlatform 的区别：本脚本【没有自转】（平台自身不随圆周倾斜），
+/// 因此碰撞体的轴对齐包围盒（bounds）始终稳定，射线检测能正确识别玩家。
+///
+/// 骑手跟随逻辑与 MovingPlatform 完全一致：
+///   1. 射线检测谁站在平台上（从平台顶面多点向下打射线）
+///   2. 计算平台线速度
+///   3. 把速度注入 player.platformVelocity，由 player.move() 叠加
 /// </summary>
-public class RotatingPlatform : MonoBehaviour
+public class OrbitingPlatform : MonoBehaviour
 {
     [Header("【旋转中心参考物】拖入一个GameObject作为旋转中心（优先使用），留空则使用下方的世界坐标")]
     [SerializeField] private Transform _pivotTransform;
@@ -21,18 +27,8 @@ public class RotatingPlatform : MonoBehaviour
     [Header("【顺时针旋转】true=顺时针, false=逆时针")]
     [SerializeField] private bool _clockwise = true;
 
-    [Header("【保持固定倾斜】勾选后平台不随圆周旋转、保持固定角度（像摩天轮车厢），不勾选则随旋转倾斜")]
-    [SerializeField] private bool _maintainHorizontal = false;
-
-    [Header("【固定倾斜角度】上方勾选时生效：平台固定的角度（度）。0=水平，正数=逆时针倾斜，负数=顺时针倾斜")]
+    [Header("【固定倾斜角度】平台始终保持的角度（度）。0=水平（摩天轮车厢效果）")]
     [SerializeField] private float _fixedTiltAngle = 0f;
-
-    [Header("【滑落角度阈值】平台倾斜超过此角度时玩家滑落（保持固定倾斜时按固定角度判断）")]
-    [Tooltip("平台倾斜超过此角度时玩家开始滑落。建议与 player.cs 的 groundCheckRadius 可站立角度对齐（约45°），实现“跳不动就开始滑”")]
-    [SerializeField] private float _slideAngleThreshold = 45f;
-
-    [Header("【滑落力度】玩家滑落时的水平推力大小")]
-    [SerializeField] private float _slideForce = 5f;
 
     [Header("玩家检测设置（与移动平台一致）")]
     [Tooltip("平台顶面采样射线数量，宽平台调高")]
@@ -43,17 +39,20 @@ public class RotatingPlatform : MonoBehaviour
     public float rayUpOffset = 0.1f;
 
     [Header("【调试】")]
-    [Tooltip("打印骑手同步日志，排查玩家不跟随的问题")]
-    [SerializeField] private bool _debugLog = false;
+    [Tooltip("打印射线检测结果和速度注入日志")]
+    [SerializeField] private bool _debugLog = true;
+    [Tooltip("调试日志打印间隔（秒），避免每帧刷屏")]
+    [SerializeField] private float _debugInterval = 0.5f;
 
     private Rigidbody2D _rb;
     private Collider2D _platformCol;   // 真正承载玩家的碰撞体（可能在子物体上）
-    private float _currentAngle;       // 当前角度（度，计算时转弧度）
+    private float _currentAngle;       // 当前角度（度）
     private float _radius;             // 旋转半径
-    private Vector2 _platformVelocity; // 平台当前线速度（世界空间），注入给玩家
-    private Vector2 _effectivePivot;   // 实际使用的旋转中心
+    private Vector2 _platformVelocity; // 平台当前线速度（世界空间）
+    private Vector2 _effectivePivot;   // 实际旋转中心
     private readonly List<Rigidbody2D> _riders = new List<Rigidbody2D>();
-    private int _playerLayerMask;      // 玩家层 mask（运行时自动解析）
+    private int _playerLayerMask;      // 玩家层 mask
+    private float _debugTimer;         // 调试日志计时器
 
     void Start()
     {
@@ -62,7 +61,7 @@ public class RotatingPlatform : MonoBehaviour
             ? (Vector2)_pivotTransform.position
             : _pivotWorldPosition;
 
-        // 初始化刚体（Kinematic模式，不响应物理力）
+        // 初始化刚体（Kinematic）
         _rb = GetComponent<Rigidbody2D>();
         if (_rb == null)
             _rb = gameObject.AddComponent<Rigidbody2D>();
@@ -72,23 +71,29 @@ public class RotatingPlatform : MonoBehaviour
         _rb.gravityScale = 0;
         _rb.useFullKinematicContacts = true;
 
-        // 找到真正承载玩家的碰撞体（可能在子物体上）
+        // 找到真正承载玩家的碰撞体
         _platformCol = FindPlatformCollider();
 
-        // 解析玩家层：优先 player 层，不存在则用 Player 标签物体的 layer
+        // 解析玩家层
         int playerIdx = LayerMask.NameToLayer("player");
         if (playerIdx >= 0)
             _playerLayerMask = 1 << playerIdx;
         else
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
-            _playerLayerMask = (p != null) ? (1 << p.layer) : -1; // -1 = 所有层
+            _playerLayerMask = (p != null) ? (1 << p.layer) : -1;
         }
 
-        // 根据初始位置计算旋转半径和起始角度
+        // 计算旋转半径和起始角度
         _radius = Vector2.Distance(transform.position, _effectivePivot);
         Vector2 startDir = (Vector2)transform.position - _effectivePivot;
         _currentAngle = Mathf.Atan2(startDir.y, startDir.x) * Mathf.Rad2Deg;
+
+        if (_debugLog)
+        {
+            Debug.Log($"[OrbitingPlatform] 初始化完成，旋转中心={_effectivePivot}，半径={_radius}，玩家层mask={_playerLayerMask}");
+            Debug.Log($"[OrbitingPlatform] 平台碰撞体={(_platformCol != null ? _platformCol.name : "null")}，bounds={(_platformCol != null ? _platformCol.bounds.ToString() : "无")}");
+        }
     }
 
     /// <summary>找到真正承载玩家的平台碰撞体：优先本物体，其次遍历子物体取包围盒面积最大的那个。</summary>
@@ -123,28 +128,22 @@ public class RotatingPlatform : MonoBehaviour
         float rad = _currentAngle * Mathf.Deg2Rad;
         Vector2 newPos = _effectivePivot + new Vector2(Mathf.Cos(rad), Mathf.Sin(rad)) * _radius;
 
-        Vector2 beforeMove = _rb.position;
         _rb.MovePosition(newPos);
 
-        // 平台自身旋转：不保持水平时，平台表面始终朝旋转中心外侧
-        if (!_maintainHorizontal)
-        {
-            float platformAngle = _currentAngle - 90f;
-            _rb.MoveRotation(platformAngle);
-        }
-        else
-        {
-            // 保持固定倾斜（摩天轮车厢式）：始终固定为指定角度，不随圆周旋转
-            _rb.MoveRotation(_fixedTiltAngle);
-        }
+        // 关键：公转平台始终保持固定倾斜角（水平），不自转
+        _rb.MoveRotation(_fixedTiltAngle);
 
-        // 计算本帧线速度（世界空间）
-        _platformVelocity = (_rb.position - beforeMove) / Time.fixedDeltaTime;
+        // ⭐修复：用解析公式计算线速度，而不是 rb.position 前后差。
+        // MovePosition 移动的是物理体内部位置，同一帧内立即读 _rb.position 仍是旧值，
+        // 导致前后差恒为 0。圆周运动切线速度 = 半径 × 角速度 × 切线方向（确定值）。
+        float angularSpeed = _rotationSpeed * Mathf.Deg2Rad * dirSign; // 弧度/秒，含方向
+        Vector2 tangent = new Vector2(-Mathf.Sin(rad), Mathf.Cos(rad)); // 切线方向（角度增大方向）
+        _platformVelocity = _radius * angularSpeed * tangent;
 
         // 射线检测谁站在平台上
         HashSet<Rigidbody2D> curPlayers = CheckAllPlayersOnPlatform();
 
-        // 清理失效骑手（离开平台的玩家，清除注入的平台速度）
+        // 清理失效骑手
         for (int i = _riders.Count - 1; i >= 0; i--)
         {
             Rigidbody2D rider = _riders[i];
@@ -155,42 +154,22 @@ public class RotatingPlatform : MonoBehaviour
             }
         }
 
-        // 添加新踩上平台的玩家
+        // 添加新骑手
         foreach (var rb in curPlayers)
         {
             if (!_riders.Contains(rb))
                 _riders.Add(rb);
         }
 
-        // 每帧把速度写入所有骑手（含滑落逻辑）
+        // 每帧注入速度
         foreach (var rb in _riders)
         {
-            if (rb == null) continue;
-            ApplyPlatformVelocity(rb, ComputeRiderVelocity());
-        }
-    }
-
-    /// <summary>计算当前应注入给骑手的速度：正常跟随平台线速度，超滑落阈值则沿斜面向下滑落</summary>
-    private Vector2 ComputeRiderVelocity()
-    {
-        // 计算平台当前倾斜角度（与水平面的夹角）
-        float platformTilt = _maintainHorizontal
-            ? Mathf.Abs(_fixedTiltAngle)
-            : Vector2.Angle(transform.up, Vector2.up);
-
-        // 超出滑落阈值 → 沿斜面向下滑落
-        if (platformTilt > _slideAngleThreshold)
-        {
-            Vector2 down = Vector2.down;
-            Vector2 surfaceDown = down - Vector2.Dot(down, (Vector2)transform.up) * (Vector2)transform.up;
-            if (surfaceDown.sqrMagnitude < 0.001f)
-                surfaceDown = Vector2.down; // 平台几乎水平时兜底，直接向下
-            surfaceDown.Normalize();
-            return surfaceDown * _slideForce;
+            if (rb != null)
+                ApplyPlatformVelocity(rb, _platformVelocity);
         }
 
-        // 安全倾斜范围内 → 跟随平台线速度
-        return _platformVelocity;
+        
+        
     }
 
     /// <summary>把平台速度注入玩家脚本（世界空间）。player.move() 会读取并叠加。</summary>
@@ -204,7 +183,6 @@ public class RotatingPlatform : MonoBehaviour
         }
         else if (rider.bodyType == RigidbodyType2D.Dynamic)
         {
-            // 兜底：非玩家动态刚体直接用速度
             rider.velocity = velocity;
         }
     }
@@ -239,7 +217,6 @@ public class RotatingPlatform : MonoBehaviour
 
     void OnDestroy()
     {
-        // 平台销毁时，清除所有骑手注入的平台速度
         for (int i = _riders.Count - 1; i >= 0; i--)
         {
             ApplyPlatformVelocity(_riders[i], Vector2.zero);

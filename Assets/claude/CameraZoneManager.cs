@@ -25,6 +25,8 @@ public class CameraZoneManager : MonoBehaviour
     [Header("黑色遮罩")]
     [SerializeField] private GameObject darkOverlayPrefab;
     [SerializeField] private float darkOverlayFadeDuration = 1.0f;
+    [Tooltip("遮罩不透明度 0~1。默认1=全黑；调低（如0.6）可让黑幕半透明，看起来不突兀、不孤立")]
+    [SerializeField] private float darkOverlayAlpha = 1f;
 
     [Header("自动解锁")]
     [SerializeField] private bool autoUnlockOnEnter = true;
@@ -174,6 +176,9 @@ public class CameraZoneManager : MonoBehaviour
         _confiner2D.m_Damping = confinerDamping;
         GameObject p = GameObject.FindGameObjectWithTag("Player");
         if (p != null) _player = p.transform;
+        // 摄像机系统做成 Prefab 复用时，运行时自动给虚拟相机绑定跟随目标，免去手动拖 Follow
+        if (virtualCamera.Follow == null && _player != null)
+            virtualCamera.Follow = _player;
         _framingTransposer = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
         if (_framingTransposer == null)
             Debug.LogError("VCam Body必须设置为Framing Transposer才能使用探头功能！");
@@ -187,15 +192,30 @@ public class CameraZoneManager : MonoBehaviour
 
         if (_currentZone == null)
         {
+            // 优先使用标记为「初始区域」的区域
             foreach (CameraZone z in _zones.Values)
             {
-                if (!z.startsHidden)
+                if (z.isDefaultStartZone)
                 {
                     SwitchToZoneImmediate(z);
                     break;
                 }
             }
 
+            // 没有标记初始区域时，回退到第一个非隐藏区域
+            if (_currentZone == null)
+            {
+                foreach (CameraZone z in _zones.Values)
+                {
+                    if (!z.startsHidden)
+                    {
+                        SwitchToZoneImmediate(z);
+                        break;
+                    }
+                }
+            }
+
+            // 仍然没有，取任意第一个区域兜底
             if (_currentZone == null && _zones.Count > 0)
             {
                 using var e = _zones.Values.GetEnumerator();
@@ -243,8 +263,25 @@ public class CameraZoneManager : MonoBehaviour
                 SpriteRenderer sr = overlay.GetComponent<SpriteRenderer>();
                 if (sr != null)
                 {
-                    sr.size = max - min;
+                    // 修复：SpriteRenderer 在 Simple（默认）绘制模式下设置 .size 无效，
+                    // 需改用 transform 缩放，让方块铺满包围盒（和 DarkZone 同一类问题）
+                    if (sr.sprite != null)
+                    {
+                        Vector2 nativeSize = sr.sprite.bounds.size;
+                        Vector3 scale = overlay.transform.localScale;
+                        if (nativeSize.x > 0.0001f && nativeSize.y > 0.0001f)
+                        {
+                            scale.x = (max.x - min.x) / nativeSize.x;
+                            scale.y = (max.y - min.y) / nativeSize.y;
+                        }
+                        overlay.transform.localScale = scale;
+                    }
                     sr.sortingOrder = 100;
+
+                    // 应用遮罩不透明度设置
+                    Color c = sr.color;
+                    c.a = darkOverlayAlpha;
+                    sr.color = c;
                 }
             }
         }
