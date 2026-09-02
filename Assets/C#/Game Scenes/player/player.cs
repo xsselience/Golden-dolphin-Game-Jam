@@ -15,6 +15,8 @@ public class player : MonoBehaviour
     [Header("移动使用组件")]
     public float speed;
     public float number;
+    [Tooltip("由移动平台注入的额外速度（世界空间）。x 方向直接叠加；y 方向非0时覆盖垂直速度（用于电梯垂直承载）")]
+    [HideInInspector] public Vector2 platformVelocity;
 
     [Header("跳跃使用组件")]
     public float speedjump;
@@ -24,8 +26,8 @@ public class player : MonoBehaviour
     public Transform feet;
     public LayerMask ground;
     [Header("人物可站立平台倾斜角度调整")]
-    [Tooltip("地面检测半径。数值越大，人物能站在越倾斜的平台上（平台倾斜约45°建议0.15左右）。在面板上调整此值来适配不同倾斜角")]
-    [SerializeField] private float groundCheckRadius = 0.15f;
+    [Tooltip("脚底向下检测距离（射线）。斜坡越陡，脚底点悬空越高，需要把此值调大才能判定为站在地上。默认0.5")]
+    [SerializeField] private float groundCheckDistance = 0.5f;
 
     [Header("攻击使用组件")]
     public bool attack;
@@ -235,7 +237,15 @@ public class player : MonoBehaviour
     {
         if (isKnockedBack || attackLocked || isDashing) return;
         number = Input.GetAxis("Horizontal");
-        playerRb.velocity = new Vector2(number * speed, playerRb.velocity.y);
+
+        // 平台速度注入：x 方向叠加（水平平台带动），y 方向非0时覆盖（垂直电梯承载，抵抗重力）
+        float vy = playerRb.velocity.y;
+        // 玩家向上运动（velocity.y > 0，通常是跳跃上升）时，不覆盖 y，保留玩家自己的垂直速度，
+        // 否则公转平台/电梯的 y 速度会在起跳第一帧就覆盖掉跳跃速度，导致跳不起来。
+        if (Mathf.Abs(platformVelocity.y) > 0.001f && playerRb.velocity.y <= 0.1f)
+            vy = platformVelocity.y;
+
+        playerRb.velocity = new Vector2(number * speed + platformVelocity.x, vy);
 
         bool shouldPlay = inground && Mathf.Abs(number) > 0.1f;
         if (shouldPlay && !moveSoundPlaying)
@@ -259,9 +269,11 @@ public class player : MonoBehaviour
 
     private void File()
     {
-        if (playerRb.velocity.x > .1f)
+        // 用输入方向 number 决定朝向，而不是 playerRb.velocity.x。
+        // velocity.x 现在包含了平台速度，若用它判断朝向，松开方向键后平台移动会导致玩家自动转身。
+        if (number > 0.1f)
             transform.localRotation = Quaternion.Euler(0, 0, 0);
-        if (playerRb.velocity.x < -.1f)
+        if (number < -0.1f)
             transform.localRotation = Quaternion.Euler(0, 180, 0);
     }
 
@@ -286,7 +298,10 @@ public class player : MonoBehaviour
 
     private void FixedupdateCheck()
     {
-        inground = Physics2D.OverlapCircle(feet.position, groundCheckRadius, ground);
+        // 用向下射线检测地面（替代原来的 OverlapCircle）。
+        // OverlapCircle 用单个小圆在脚底检测，斜坡较陡时脚底点悬空，圆够不到坡面导致误判掉落。
+        // 向下射线能沿坡面法线方向“够到”下方的地面，长度可调，斜坡越陡调越大。
+        inground = Physics2D.Raycast(feet.position, Vector2.down, groundCheckDistance, ground);
     }
 
     public void dash()

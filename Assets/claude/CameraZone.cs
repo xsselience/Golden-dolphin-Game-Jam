@@ -16,6 +16,10 @@ public class CameraZone : MonoBehaviour
     [Tooltip("勾选后，初始被黑色遮罩覆盖，进入后自动移除")]
     public bool startsHidden = false;
 
+    [Header("═══ 初始区域 ═══")]
+    [Tooltip("勾选后，此区域作为进入游戏时的默认初始区域（玩家出生所在区域）。多个区域同时勾选时以先找到的为准")]
+    public bool isDefaultStartZone = false;
+
     [Header("═══ 调试 ═══")]
     public Color gizmoColor = new Color(0f, 1f, 1f, 0.3f);
 
