@@ -14,7 +14,7 @@ using UnityEngine.UI;
 ///      （不需要手动设置 doorId，直接拖引用就行）
 ///
 /// 传送逻辑：
-///   - 水平连接：保持玩家当前移动速度，自然走入目标房间
+///  
 ///   - 垂直上行：给玩家额外速度防止掉回下层
 /// </summary>
 public class RoomConnectionManager : MonoBehaviour
@@ -44,7 +44,7 @@ public class RoomConnectionManager : MonoBehaviour
     }
 
     // 快速查找：RoomDoor引用 → 它的配对门
-    // 用引用做key，不依赖doorId字符串，避免同名/空名导致的配对错误
+   
     private Dictionary<RoomDoor, RoomDoor> _pairedDoorMap;
     private bool _isTransitioning;
 
@@ -124,7 +124,8 @@ public class RoomConnectionManager : MonoBehaviour
             Debug.LogWarning($"[RoomConnectionManager] 门 '{enteredDoor.name}' (doorId={enteredDoor.doorId}) 未在 doorPairs 中配对！");
             return;
         }
-
+        enteredDoor.used = true;
+        targetDoor.used = true;
         StartCoroutine(TransitionRoutine(enteredDoor, targetDoor));
     }
 
@@ -154,15 +155,15 @@ public class RoomConnectionManager : MonoBehaviour
         // ═══ 阶段2：保存玩家当前速度 + 移动玩家 ═══
         Transform player = GameObject.FindGameObjectWithTag("Player")?.transform;
         Rigidbody2D playerRb = null;
-        player playerCtrl = null;   // 玩家脚本，用于水平传送后强制向前走两步
+        //player playerCtrl = null;   // 玩家脚本，用于水平传送后强制向前走两步
         float savedVelocityX = 0f;
-        float moveDir = 1f;         // 水平传送后强制前进的方向
-        bool usedForceWalk = false; // 水平传送是否启用了强制前进（用于配对 EndRoomTransition）
+        //float moveDir = 1f;         // 水平传送后强制前进的方向
+        //bool usedForceWalk = false; // 水平传送是否启用了强制前进（用于配对 EndRoomTransition）
 
         if (player != null)
         {
             playerRb = player.GetComponent<Rigidbody2D>();
-            playerCtrl = player.GetComponent<player>();
+            //playerCtrl = player.GetComponent<player>();
 
             // 保存玩家进入门前一刻的水平速度
             if (playerRb != null)
@@ -172,7 +173,7 @@ public class RoomConnectionManager : MonoBehaviour
             }
 
             // 水平传送后强制前进方向：优先用进入门时的移动方向，否则用玩家朝向
-            moveDir = Mathf.Abs(savedVelocityX) > 0.01f ? Mathf.Sign(savedVelocityX) : (player.localScale.x > 0 ? 1f : -1f);
+           // moveDir = Mathf.Abs(savedVelocityX) > 0.01f ? Mathf.Sign(savedVelocityX) : (player.localScale.x > 0 ? 1f : -1f);
 
             // 传送到目标门的位置
             player.position = toDoor.transform.position;
@@ -195,16 +196,16 @@ public class RoomConnectionManager : MonoBehaviour
             else
             {
                 // 水平连接：强制玩家向前走两步（离开门），防止立刻又被传回来。
-                // 复用 player 已有的 StartRoomTransition 机制（旧 RoomGate 用过）
-                if (playerCtrl != null)
+               
+               /* if (playerCtrl != null)
                 {
                     playerCtrl.StartRoomTransition(moveDir);
                     usedForceWalk = true;
                 }
                 else
-                {
+                {*/
                     playerRb.velocity = new Vector2(savedVelocityX, 0f);
-                }
+                //}
             }
         }
 
@@ -220,8 +221,8 @@ public class RoomConnectionManager : MonoBehaviour
         if (toCol != null) toCol.enabled = true;
 
         // 结束强制前进（水平传送时由 StartRoomTransition 开启，此时玩家已走过一段距离）
-        if (usedForceWalk && playerCtrl != null)
-            playerCtrl.EndRoomTransition();
+       // if (usedForceWalk && playerCtrl != null)
+         //   playerCtrl.EndRoomTransition();
 
         _isTransitioning = false;
 

@@ -25,6 +25,15 @@ public class player : MonoBehaviour
     private bool inground; // 地面检测变量
     public Transform feet;
     public LayerMask ground;
+    [Tooltip("跳跃键按住时间窗口")]
+    public float jumpHoldWindow = 1f;
+    [Tooltip("按住空格时每帧增加的向上加速度")]
+    public float jumpHoldAccel = 220f;
+    private float jumpHoldTimer;
+    private bool jumpStarted; //标记已经触发起跳，可以按住拔高
+    [Tooltip("松开空格立刻削减多少向上速度，实现短跳")]
+    public float jumpCutMultiplier = 0.4f;
+
     [Header("人物可站立平台倾斜角度调整")]
     [Tooltip("脚底向下检测距离（射线）。斜坡越陡，脚底点悬空越高，需要把此值调大才能判定为站在地上。默认0.5")]
     [SerializeField] private float groundCheckDistance = 0.5f;
@@ -285,6 +294,33 @@ public class player : MonoBehaviour
             playerRb.gravityScale = 6;
             playerRb.velocity = new Vector2(playerRb.velocity.x, speedjump);
             jumptrue = true;
+            jumpStarted = true;
+            jumpHoldTimer = jumpHoldWindow;
+            // 关键：起跳这一帧 inground 仍是上一帧的 true（地面检测在 JUMP 之后才更新）。
+            // 若不 return，下面 if(inground) 会把 jumpStarted 立即重置为 false，导致"按住拔高"失效。
+            return;
+        }
+        // 空中按住空格：在时间窗口内持续补向上速度，实现"按住跳更高"
+        // 关键：直接改 velocity.y，不要用 AddForce（AddForce 会被 move() 的 velocity 赋值覆盖）
+        if (jumpStarted && Input.GetButton("Jump") && jumpHoldTimer > 0f)
+        {
+            jumpHoldTimer -= Time.deltaTime;
+            playerRb.velocity = new Vector2(
+                playerRb.velocity.x,
+                playerRb.velocity.y + jumpHoldAccel * Time.deltaTime);
+        }
+
+        // 空中松开空格：截断向上速度，实现短跳（跳得矮）
+        if (jumpStarted && Input.GetButtonUp("Jump") && playerRb.velocity.y > 0f)
+        {
+            playerRb.velocity = new Vector2(playerRb.velocity.x, playerRb.velocity.y * jumpCutMultiplier);
+            jumpStarted = false;
+        }
+
+        //离开地面下落，关闭按住拔高状态
+        if (!inground && playerRb.velocity.y <= 0)
+        {
+            jumpStarted = false;
         }
 
         if (playerRb.velocity.y > 0.1f && !inground)
@@ -293,7 +329,13 @@ public class player : MonoBehaviour
             jumptrue = false;
 
         if (inground)
-            jumptrue = false;
+        {
+            jumptrue = false; // 落地时关闭跳跃动画
+            // 注意：这里【不能】重置 jumpStarted。
+            // 因为 JUMP() 运行时 inground 是上一帧的值（FixedupdateCheck 在 JUMP 之后才执行），
+            // 起跳后最初几帧 inground 仍为 true，会误把 jumpStarted 清掉，导致"按住拔高"失效。
+            // jumpStarted 的复位交给上方"下落"(velocity.y<=0 且 !inground) 和"松开按键"两个分支处理。
+        }
     }
 
     private void FixedupdateCheck()
@@ -487,6 +529,9 @@ public class player : MonoBehaviour
         ZoneController[] zones = FindObjectsOfType<ZoneController>();
         foreach (ZoneController z in zones) z.SetForHack(true);
 
+        ElevatorController[] elevators = FindObjectsOfType<ElevatorController>();
+        foreach (ElevatorController e in elevators) e.SetForHack(true);
+
         if (sr != null) sr.color = new Color(0f, 1f, 1f);
     }
 
@@ -548,6 +593,9 @@ public class player : MonoBehaviour
 
         ZoneController[] zones = FindObjectsOfType<ZoneController>();
         foreach (ZoneController z in zones) z.SetForHack(false);
+
+        ElevatorController[] elevators = FindObjectsOfType<ElevatorController>();
+        foreach (ElevatorController e in elevators) e.SetForHack(false);
 
         if (sr != null) sr.color = Color.white;
     }
