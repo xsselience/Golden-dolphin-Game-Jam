@@ -1,9 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 房间传送门 —— 放在房间出口处，玩家触碰后自动传送到配对的另一个门
-/// 与 RoomConnectionManager 配合使用，支持"门对门"双向传送
-/// 传送门与房间（CameraZone）一一对应：zoneId 决定摄像机切换到哪个区域
+/// 房间传送门 —— 玩家靠近后显示交互提示，按交互键（默认 E）才传送。
+/// 与 RoomConnectionManager 配合使用，支持"门对门"双向传送（可配成一次性单向）。
 /// </summary>
 public class RoomDoor : MonoBehaviour
 {
@@ -14,6 +13,10 @@ public class RoomDoor : MonoBehaviour
     [Header("═══ 所属摄像机区域 ═══")]
     [Tooltip("此门所属 CameraZone 的 zoneId，玩家到达此门时切换到此区域")]
     public string zoneId = "";
+
+    [Header("═══ 一次性传送 ═══")]
+    [Tooltip("此门是否已经用过（由管理器在传送时标记，用过即失效）")]
+    public bool used = false;
 
     [Header("═══ 连接类型 ═══")]
     [Tooltip("水平连接：房间左右相邻，传送后保持玩家当前移动速度\n垂直上行：房间上下相邻（从下层传到上层），传送后给玩家额外向上速度防止掉回去")]
@@ -26,6 +29,13 @@ public class RoomDoor : MonoBehaviour
     [Tooltip("传送到达后给玩家的垂直速度（正值=向上，建议8左右）")]
     [SerializeField] private float _arrivalVelocityY = 8f;
 
+    [Header("═══ 交互设置 ═══")]
+    [Tooltip("触发传送的按键")]
+    public KeyCode interactKey = KeyCode.E;
+
+    [Tooltip("靠近时显示的提示文字")]
+    public string promptText = "按 E 交互";
+
     /// <summary>连接类型枚举</summary>
     public enum ConnectionType
     {
@@ -36,6 +46,8 @@ public class RoomDoor : MonoBehaviour
     // 公开属性供管理器读取
     public float ArrivalVelocityX => _arrivalVelocityX;
     public float ArrivalVelocityY => _arrivalVelocityY;
+
+    private bool _playerInRange = false; // 玩家是否在门的触发范围内
 
     void Start()
     {
@@ -52,14 +64,53 @@ public class RoomDoor : MonoBehaviour
         rb.bodyType = RigidbodyType2D.Kinematic;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void Update()
     {
-        if (!other.CompareTag("Player")) return;
+        // 三个条件都满足才传送：玩家在范围内、门未用过、按下交互键
+        if (!_playerInRange) return;
+        if (used) return;
+        if (!Input.GetKeyDown(interactKey)) return;
 
+        // 按下交互键后先隐藏提示，避免黑屏时提示还残留
+        HidePrompt();
+
+        // 通知管理器执行传送
         if (RoomConnectionManager.Instance != null)
             RoomConnectionManager.Instance.OnPlayerEnterDoor(this);
         else
             Debug.LogWarning("[RoomDoor] RoomConnectionManager 实例不存在，无法传送！");
+    }
+
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!other.CompareTag("Player")) return;
+        _playerInRange = true;
+
+        // 门没用过才显示提示
+        if (!used) ShowPrompt();
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (!other.CompareTag("Player")) return;
+        _playerInRange = false;
+        HidePrompt();
+    }
+
+    // ═══ 提示显示/隐藏 ═══
+
+    void ShowPrompt()
+    {
+        if (DoorPromptText.Instance != null)
+            DoorPromptText.Instance.Show(promptText);
+        else
+            Debug.Log($"[RoomDoor] {promptText}"); // 场景里没挂 DoorPromptText 时用日志占位
+    }
+
+    void HidePrompt()
+    {
+        if (DoorPromptText.Instance != null)
+            DoorPromptText.Instance.Hide();
     }
 
     #if UNITY_EDITOR
