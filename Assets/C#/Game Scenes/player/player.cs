@@ -223,7 +223,7 @@ public class player : MonoBehaviour
         }
         else
         {
-            CameraZoneManager.Instance.ClearPeek();
+            //CameraZoneManager.Instance.ClearPeek();
         }
     }
 
